@@ -54,6 +54,72 @@ class _BFCCalcScreenState extends State<BFCCalcScreen> {
                 ),
               ],
             ),
+            Row(
+              children: [
+                Text('Weight'),
+                SizedBox(
+                  width: 200,
+                  child: TextField(
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Enter Weight',
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                Text('Height'),
+                SizedBox(
+                  width: 200,
+                  child: TextField(
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Enter Height',
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                Text('Neck'),
+                SizedBox(
+                  width: 200,
+                  child: TextField(
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Enter Neck',
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                Text('Waist'),
+                SizedBox(
+                  width: 200,
+                  child: TextField(
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Enter Waist',
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                ElevatedButton(onPressed: () {}, child: Text('Calculate BF')),
+                ElevatedButton(onPressed: () {}, child: Text('Reset')),
+              ],
+            ),
           ],
         ),
       ),
