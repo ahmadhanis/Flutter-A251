@@ -8,7 +8,12 @@ class BMRCalcScreen extends StatefulWidget {
 }
 
 class _BMRCalcScreenState extends State<BMRCalcScreen> {
+  TextEditingController ageController = TextEditingController();
+  TextEditingController heightController = TextEditingController();
+  TextEditingController weightController = TextEditingController();
   String gender = 'Male';
+  double bmrResult = 0.0;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -25,8 +30,8 @@ class _BMRCalcScreenState extends State<BMRCalcScreen> {
               border: Border.all(color: Colors.grey),
               borderRadius: BorderRadius.circular(10),
             ),
-        
-            height: 350,
+
+            height: 400,
             width: 300,
             child: Column(
               children: [
@@ -36,6 +41,7 @@ class _BMRCalcScreenState extends State<BMRCalcScreen> {
                     SizedBox(
                       width: 100,
                       child: TextField(
+                        controller: ageController,
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
                           hintText: 'Age',
@@ -73,6 +79,7 @@ class _BMRCalcScreenState extends State<BMRCalcScreen> {
                     SizedBox(
                       width: 100,
                       child: TextField(
+                        controller: heightController,
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
                           hintText: 'Height',
@@ -91,6 +98,7 @@ class _BMRCalcScreenState extends State<BMRCalcScreen> {
                     SizedBox(
                       width: 100,
                       child: TextField(
+                        controller: weightController,
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
                           hintText: 'Weight',
@@ -106,12 +114,17 @@ class _BMRCalcScreenState extends State<BMRCalcScreen> {
                 Row(
                   children: [
                     ElevatedButton(
-                      onPressed: () {},
+                      onPressed: calculateBMR,
                       child: Text('Calculate BMR'),
                     ),
                     SizedBox(width: 20),
                     ElevatedButton(onPressed: () {}, child: Text('Reset')),
                   ],
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'Your BMR is: ${bmrResult.toStringAsFixed(2)} kcal/day',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -119,5 +132,19 @@ class _BMRCalcScreenState extends State<BMRCalcScreen> {
         ),
       ),
     );
+  }
+
+  void calculateBMR() {
+    int age = int.parse(ageController.text);
+    double height = double.parse(heightController.text);
+    double weight = double.parse(weightController.text);
+
+    if (gender == 'Male') {
+      bmrResult = 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age);
+    } else {
+      bmrResult = 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
+    }
+
+    setState(() {});
   }
 }
