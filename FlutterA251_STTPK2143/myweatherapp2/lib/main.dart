@@ -27,6 +27,7 @@ class MyWeatherScreen extends StatefulWidget {
 class _MyWeatherScreenState extends State<MyWeatherScreen> {
   TextEditingController locationController = TextEditingController();
   String status = "Status here";
+  bool vis = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -47,6 +48,9 @@ class _MyWeatherScreenState extends State<MyWeatherScreen> {
                 ),
               ),
             ),
+
+            Visibility(visible: vis, child: CircularProgressIndicator()),
+
             ElevatedButton(onPressed: getWeather, child: Text('Get Weather')),
             SizedBox(height: 20),
             Text(status, style: TextStyle(fontSize: 20)),
@@ -59,14 +63,27 @@ class _MyWeatherScreenState extends State<MyWeatherScreen> {
 
   void getWeather() async {
     status = 'Getting weather...';
+    vis = true;
     setState(() {});
     String loc = locationController.text;
     print('Getting weather $loc');
-    var response = await http.get(
-      Uri.parse(
-        'https://api.data.gov.my/weather/forecast/?contains=$loc@location__location_name',
-      ),
-    );
+    var response = await http
+        .get(
+          Uri.parse(
+            'https://api.data.gov.my/weather/forecast/?contains=$loc@location__location_name',
+          ),
+        )
+        .timeout(
+          const Duration(seconds: 5),
+          onTimeout: () {
+            log('Error getting weather: Timeout');
+            status = 'Error getting weather: Timeout';
+            vis = false;
+            setState(() {});
+            return http.Response('Error', 408); // Request Timeout response
+          },
+        );
+
     if (response.statusCode != 200) {
       log('Error getting weather: ${response.statusCode}');
       status = 'Error getting weather: ${response.statusCode}';
@@ -94,6 +111,7 @@ class _MyWeatherScreenState extends State<MyWeatherScreen> {
     }
     log(response.body.toString());
     status = 'Success';
+    vis = false;
     setState(() {});
   }
 }
