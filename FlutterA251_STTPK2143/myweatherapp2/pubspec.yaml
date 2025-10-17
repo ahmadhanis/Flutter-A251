@@ -1,15 +1,15 @@
-name: myplayer
+name: myweatherapp2
 description: "A new Flutter project."
-publish_to: "none"
+publish_to: 'none'
 version: 0.1.0
 
 environment:
-  sdk: ^3.9.0
+  sdk: ^3.9.2
 
 dependencies:
   flutter:
     sdk: flutter
-  audioplayers: ^6.5.1
+  http: ^1.5.0
 
 dev_dependencies:
   flutter_test:
@@ -18,6 +18,3 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-
-  assets:
-    - assets/
