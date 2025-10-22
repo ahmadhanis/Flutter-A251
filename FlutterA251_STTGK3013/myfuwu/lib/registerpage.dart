@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -15,6 +17,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   late double height, width;
   bool visible = true;
+  bool isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -101,7 +104,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: registerDialog,
+                      onPressed: () {
+                        print('Register button pressed');
+                        registerDialog();
+                      },
                       child: Text('Register'),
                     ),
                   ),
@@ -152,6 +158,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
+              print('Before registering user with email: $email');
               registerUser(email, password);
             },
             child: Text('Register'),
@@ -167,13 +174,70 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   void registerUser(String email, String password) async {
+    setState(() {
+      isLoading = true;
+    });
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          content: Row(
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(width: 20),
+              Text('Registering...'),
+            ],
+          ),
+        );
+      },
+      barrierDismissible: false,
+    );
     await http
         .post(
-          Uri.parse('http://192.168.0.186/myfuwu/api/register.php'),
+          Uri.parse('http://10.19.42.186/myfuwu/api/register.php'),
           body: {'email': email, 'password': password},
         )
         .then((response) {
-          print(response.body);
-        });
+          if (response.statusCode == 200) {
+            var jsonResponse = response.body;
+            var resarray = jsonDecode(jsonResponse);
+            if (resarray['status'] == 'success') {
+              if (!mounted) return;
+              SnackBar snackBar = const SnackBar(
+                content: Text('Registration successful'),
+              );
+              ScaffoldMessenger.of(context).showSnackBar(snackBar);
+            } else {
+              if (!mounted) return;
+              SnackBar snackBar = SnackBar(content: Text(resarray['message']));
+              ScaffoldMessenger.of(context).showSnackBar(snackBar);
+            }
+          } else {
+            if (!mounted) return;
+            SnackBar snackBar = const SnackBar(
+              content: Text('Registration failed. Please try again.'),
+            );
+            ScaffoldMessenger.of(context).showSnackBar(snackBar);
+          }
+        })
+        .timeout(
+          Duration(seconds: 10),
+          onTimeout: () {
+            if (!mounted) return;
+            SnackBar snackBar = const SnackBar(
+              content: Text('Request timed out. Please try again.'),
+            );
+            ScaffoldMessenger.of(context).showSnackBar(snackBar);
+          },
+        );
+
+        if (isLoading) {
+          if (!mounted) return;
+          Navigator.pop(context); // Close the loading dialog
+          setState(() {
+            isLoading = false;
+          });
+        }
   }
+  
 }
