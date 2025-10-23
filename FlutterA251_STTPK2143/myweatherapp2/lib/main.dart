@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:myweatherapp2/location.dart';
 
 void main() {
   runApp(const MainApp());
@@ -27,12 +28,14 @@ class MyWeatherScreen extends StatefulWidget {
 
 class _MyWeatherScreenState extends State<MyWeatherScreen> {
   TextEditingController locationController = TextEditingController();
-  String status = "Status here";
+  String status = "Search for weather by location";
   bool vis = false;
   List<dynamic> weatherData = [];
   String loc = '';
   final dateformat = DateFormat('dd/MM/yyyy');
   late double screenWidth, screenHeight;
+  Mylocation mylocation = Mylocation();
+  String selectedloc = 'Jitra';
 
   @override
   Widget build(BuildContext context) {
@@ -48,32 +51,62 @@ class _MyWeatherScreenState extends State<MyWeatherScreen> {
           width: screenWidth,
           child: Column(
             children: [
+              // Padding(
+              //   padding: const EdgeInsets.all(8.0),
+              //   child: TextField(
+              //     controller: locationController,
+              //     decoration: InputDecoration(
+              //       hintText: 'Enter location',
+              //       border: OutlineInputBorder(
+              //         borderRadius: BorderRadius.circular(10.0),
+              //       ),
+              //     ),
+              //   ),
+              // ),
               Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: TextField(
-                  controller: locationController,
+                padding: EdgeInsets.all(8.0),
+                child: DropdownButtonFormField<String>(
                   decoration: InputDecoration(
-                    hintText: 'Enter location',
+                    labelText: 'Select Location',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10.0),
                     ),
                   ),
+                  items: mylocation.allLocations.map((String location) {
+                    return DropdownMenuItem<String>(
+                      value: location,
+                      child: Text(location),
+                    );
+                  }).toList(),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      selectedloc = newValue!;
+                    });
+                  },
                 ),
               ),
 
               Visibility(visible: vis, child: CircularProgressIndicator()),
 
-              ElevatedButton(onPressed: getWeather, child: Text('Get Weather')),
-              SizedBox(height: 20),
-              Text(status, style: TextStyle(fontSize: 20)),
+              SizedBox(
+                width: screenWidth,
+                height: 50,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    textStyle: TextStyle(fontSize: 20),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                  ),
+                  onPressed: getWeather,
+                  child: Text('Get Weather'),
+                ),
+              ),
               SizedBox(height: 20),
               weatherData.isEmpty
-                  ? Center(
-                      child: Text(
-                        'No weather data available',
-                        style: TextStyle(fontSize: 16),
-                      ),
-                    )
+                  ? Center(child: Text(status, style: TextStyle(fontSize: 20)))
                   : Expanded(
                       child: ListView.builder(
                         itemCount: weatherData.length,
@@ -106,6 +139,10 @@ class _MyWeatherScreenState extends State<MyWeatherScreen> {
                                     return AlertDialog(
                                       title: Text(
                                         'Weather Details for $loc on $date',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                        ),
                                       ),
                                       content: Column(
                                         mainAxisSize: MainAxisSize.min,
@@ -113,8 +150,9 @@ class _MyWeatherScreenState extends State<MyWeatherScreen> {
                                             CrossAxisAlignment.start,
                                         children: [
                                           SizedBox(height: 10),
-                                          Text('Min Temp: $min °C'),
-                                          Text('Max Temp: $max °C'),
+                                          Text(
+                                            'Min Temp: $min °C | Max Temp: $max °C',
+                                          ),
                                           SizedBox(height: 10),
                                           Text('Morning: $morning'),
                                           Text('Afternoon: $afternoon'),
@@ -163,11 +201,10 @@ class _MyWeatherScreenState extends State<MyWeatherScreen> {
   //https://api.data.gov.my/weather/forecast/?contains=$loc@location__location_name
 
   void getWeather() async {
-    var data = [];
     weatherData = [];
     vis = true;
     setState(() {});
-    loc = locationController.text;
+    loc = selectedloc;
     if (loc.isEmpty) {
       status = 'Please enter a location';
       vis = false;
@@ -214,18 +251,17 @@ class _MyWeatherScreenState extends State<MyWeatherScreen> {
       return;
     }
 
-    data = json.decode(response.body);
+    weatherData = json.decode(response.body);
 
-    if (data.isEmpty) {
+    if (weatherData.isEmpty) {
       log('Error getting weather: Location not found');
       status = 'Error getting weather: Location not found';
       vis = false;
-      data = []; //reset data
+      weatherData = []; //reset data
       setState(() {});
       return;
     }
 
-    weatherData = data;
     // log(response.body.toString());
     status = 'Weather for $loc ';
     vis = false;
