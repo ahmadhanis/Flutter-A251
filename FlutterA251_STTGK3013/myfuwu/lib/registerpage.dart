@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:myfuwu/loginpage.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -92,15 +93,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
-                    child: Row(
-                      children: [
-                        Text('Remember Me'),
-                        Checkbox(value: false, onChanged: (value) {}),
-                      ],
-                    ),
-                  ),
+                  SizedBox(height: 20),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -111,10 +104,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       child: Text('Register'),
                     ),
                   ),
+                  SizedBox(height: 10),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const LoginPage(),
+                        ),
+                      );
+                    },
+                    child: Text('Already have an account? Login here'),
+                  ),
                   SizedBox(height: 5),
-                  Text('Already have an account? Login'),
-                  SizedBox(height: 5),
-                  Text('Forgot Password?'),
                 ],
               ),
             ),
@@ -194,19 +197,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
     await http
         .post(
-          Uri.parse('http://10.19.42.186/myfuwu/api/register.php'),
+          Uri.parse('http://10.19.54.202/myfuwu/api/register.php'),
           body: {'email': email, 'password': password},
         )
         .then((response) {
           if (response.statusCode == 200) {
             var jsonResponse = response.body;
             var resarray = jsonDecode(jsonResponse);
+            print(jsonResponse);
             if (resarray['status'] == 'success') {
               if (!mounted) return;
               SnackBar snackBar = const SnackBar(
                 content: Text('Registration successful'),
               );
+              if (isLoading) {
+                if (!mounted) return;
+                Navigator.pop(context); // Close the loading dialog
+                setState(() {
+                  isLoading = false;
+                });
+              }
+              Navigator.pop(context); // Close the registration dialog
               ScaffoldMessenger.of(context).showSnackBar(snackBar);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const LoginPage()),
+              );
             } else {
               if (!mounted) return;
               SnackBar snackBar = SnackBar(content: Text(resarray['message']));
@@ -231,13 +247,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
           },
         );
 
-        if (isLoading) {
-          if (!mounted) return;
-          Navigator.pop(context); // Close the loading dialog
-          setState(() {
-            isLoading = false;
-          });
-        }
+    if (isLoading) {
+      if (!mounted) return;
+      Navigator.pop(context); // Close the loading dialog
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
-  
 }
