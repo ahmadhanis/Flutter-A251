@@ -53,8 +53,6 @@ class Mylocation {
     "Daro",
     "Daerah Timur Laut",
     "Daerah Barat Daya",
-    "Daro",
-    "Daro",
     "Dungun",
     "Gombak",
     "Gua Musang",

@@ -1,5 +1,5 @@
-name: myweatherapp2
-description: "Weather Application built with Flutter"
+name: randomperson
+description: "A new Flutter project."
 publish_to: 'none'
 version: 0.1.0
 
@@ -9,13 +9,13 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_cors_image: ^0.3.13
   http: ^1.5.0
-  intl: ^0.20.2
 
 dev_dependencies:
+  flutter_lints: ^5.0.0
   flutter_test:
     sdk: flutter
-  flutter_lints: ^5.0.0
 
 flutter:
   uses-material-design: true
