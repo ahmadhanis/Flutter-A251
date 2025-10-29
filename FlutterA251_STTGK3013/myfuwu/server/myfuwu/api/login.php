@@ -14,10 +14,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $sqllogin = "SELECT * FROM `tbl_users` WHERE `user_email` = '$email' AND `user_password` = '$hashedpassword'";
     $result = $conn->query($sqllogin);
     if ($result->num_rows > 0) {
-        $response = array('status' => 'success', 'message' => 'Login successful');
+        $userdata = array();
+        while ($row = $result->fetch_assoc()) {
+            $userdata[] = $row;
+        }
+        $response = array('status' => 'success', 'message' => 'Login successful', 'data' => $userdata);
         sendJsonResponse($response);
     } else {
-        $response = array('status' => 'failed', 'message' => 'Invalid email or password');
+        $response = array('status' => 'failed', 'message' => 'Invalid email or password','data'=>null);
         sendJsonResponse($response);
     }
 

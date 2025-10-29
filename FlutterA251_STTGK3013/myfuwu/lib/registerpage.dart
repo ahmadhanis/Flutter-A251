@@ -197,7 +197,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
     await http
         .post(
-          Uri.parse('http://10.19.54.202/myfuwu/api/register.php'),
+          Uri.parse('http://10.19.35.230/myfuwu/api/register.php'),
           body: {'email': email, 'password': password},
         )
         .then((response) {

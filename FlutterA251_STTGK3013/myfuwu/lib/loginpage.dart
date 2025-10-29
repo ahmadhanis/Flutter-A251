@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:myfuwu/mainpage.dart';
+import 'package:myfuwu/models/user.dart';
 import 'package:myfuwu/registerpage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -19,6 +21,8 @@ class _LoginPageState extends State<LoginPage> {
   bool visible = true;
   bool isChecked = false;
 
+  late User user;
+
   @override
   void initState() {
     super.initState();
@@ -29,7 +33,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
-    print(width);
+    // print(width);
     if (width > 400) {
       width = 400;
     } else {
@@ -208,14 +212,18 @@ class _LoginPageState extends State<LoginPage> {
     }
     http
         .post(
-          Uri.parse('http://10.19.54.202/myfuwu/api/login.php'),
+          Uri.parse('http://10.19.35.230/myfuwu/api/login.php'),
           body: {'email': email, 'password': password},
         )
         .then((response) {
           if (response.statusCode == 200) {
             var jsonResponse = response.body;
+            // print(jsonResponse);
             var resarray = jsonDecode(jsonResponse);
             if (resarray['status'] == 'success') {
+              //print(resarray['data'][0]);
+              user = User.fromJson(resarray['data'][0]);
+
               if (!mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -225,6 +233,12 @@ class _LoginPageState extends State<LoginPage> {
               );
               Navigator.pop(context);
               // Navigate to home page or dashboard
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MainPage(user: user),
+                ),
+              );
             } else {
               if (!mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
@@ -236,6 +250,7 @@ class _LoginPageState extends State<LoginPage> {
             }
             // Handle successful login here
           } else {
+            if (!mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text("Login failed: ${response.statusCode}"),
