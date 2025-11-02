@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:myfuwu/loginpage.dart';
+import 'package:myfuwu/views/loginpage.dart';
 import 'package:myfuwu/models/user.dart';
-import 'package:myfuwu/registerpage.dart';
+import 'package:myfuwu/views/myservicepage.dart';
 
 class MainPage extends StatefulWidget {
   final User? user;
@@ -22,6 +22,8 @@ class _MainPageState extends State<MainPage> {
           children: [
             Text('User ID: ${widget.user?.userId}'),
             Text('User Email: ${widget.user?.userEmail}'),
+            Text('User Name: ${widget.user?.userName}'),
+            Text('User Phone: ${widget.user?.userPhone}'),
             Text('User Password: ${widget.user?.userPassword}'),
             Text('User OTP: ${widget.user?.userOtp}'),
             Text('User Regdate: ${widget.user?.userRegdate}'),
@@ -41,6 +43,13 @@ class _MainPageState extends State<MainPage> {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const LoginPage()),
+            );
+          } else {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => MyServicePage(user: widget.user),
+              ),
             );
           }
         },

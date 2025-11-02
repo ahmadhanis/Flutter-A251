@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:myfuwu/splashpage.dart';
+import 'package:myfuwu/views/splashpage.dart';
 
 void main() {
   runApp(const MainApp());

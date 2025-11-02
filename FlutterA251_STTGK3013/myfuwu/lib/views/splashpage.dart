@@ -2,7 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:myfuwu/mainpage.dart';
+import 'package:myfuwu/myconfig.dart';
+import 'package:myfuwu/views/mainpage.dart';
 import 'package:myfuwu/models/user.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -40,7 +41,9 @@ class _SplashPageState extends State<SplashPage> {
         password = prefs.getString('password') ?? 'NA';
         http
             .post(
-              Uri.parse('http://10.19.35.230/myfuwu/api/login.php'),
+              Uri.parse(
+                '${MyConfig.baseUrl}/myfuwu/api/login.php',
+              ),
               body: {'email': email, 'password': password},
             )
             .then((response) {

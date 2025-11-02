@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:myfuwu/loginpage.dart';
+import 'package:myfuwu/myconfig.dart';
+import 'package:myfuwu/views/loginpage.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -13,6 +15,8 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   TextEditingController emailController = TextEditingController();
+  TextEditingController nameController = TextEditingController();
+  TextEditingController phoneController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   TextEditingController confirmPasswordController = TextEditingController();
 
@@ -52,6 +56,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       labelText: 'Email',
                       border: OutlineInputBorder(),
                     ),
+                  ),
+                  SizedBox(height: 5),
+                  TextField(
+                    controller: nameController,
+                    decoration: InputDecoration(
+                      labelText: 'Name',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  SizedBox(height: 5),
+                  TextField(
+                    controller: phoneController,
+                    keyboardType: TextInputType.phone,
+                    decoration: InputDecoration(
+                      labelText: 'Phone',
+                      border: OutlineInputBorder(),
+                    ),  
                   ),
                   SizedBox(height: 5),
                   TextField(
@@ -129,6 +150,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   void registerDialog() {
     String email = emailController.text.trim();
+    String name = nameController.text.trim();
+    String phone = phoneController.text.trim();
     String password = passwordController.text.trim();
     String confirmPassword = confirmPasswordController.text.trim();
 
@@ -162,7 +185,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             onPressed: () {
               Navigator.pop(context);
               print('Before registering user with email: $email');
-              registerUser(email, password);
+              registerUser(email, password, name, phone);
             },
             child: Text('Register'),
           ),
@@ -176,7 +199,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  void registerUser(String email, String password) async {
+  void registerUser(String email, String password, String name, String phone) async {
     setState(() {
       isLoading = true;
     });
@@ -197,14 +220,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
     await http
         .post(
-          Uri.parse('http://10.19.35.230/myfuwu/api/register.php'),
-          body: {'email': email, 'password': password},
+          Uri.parse('${MyConfig.baseUrl}/myfuwu/api/register.php'),
+          body: {'email': email, 
+          'name': name,
+          'phone': phone,
+          'password': password},
         )
         .then((response) {
+          // log(response.body);
+          // log(response.statusCode.toString());
           if (response.statusCode == 200) {
             var jsonResponse = response.body;
             var resarray = jsonDecode(jsonResponse);
-            print(jsonResponse);
+            log(jsonResponse);
             if (resarray['status'] == 'success') {
               if (!mounted) return;
               SnackBar snackBar = const SnackBar(

@@ -7,13 +7,15 @@
 		echo json_encode(array('error' => 'Method Not Allowed'));
 		exit();
 	}
-	if (!isset($_POST['email']) || !isset($_POST['password'])) {
+	if (!isset($_POST['email']) || !isset($_POST['password']) || !isset($_POST['name']) || !isset($_POST['phone'])) {
 		http_response_code(400);
 		echo json_encode(array('error' => 'Bad Request'));
 		exit();
 	}
 
 	$email = $_POST['email'];
+	$name = $_POST['name'];
+	$phone = $_POST['phone'];
 	$password = $_POST['password'];
 	$hashedpassword = sha1($password);
 	$otp = rand(100000, 999999);
@@ -26,7 +28,7 @@
 		exit();
 	}
 	// Insert new user into database
-	$sqlregister = "INSERT INTO `tbl_users`(`user_email`, `user_password`, `user_otp`) VALUES ('$email','$hashedpassword','$otp')";
+	$sqlregister = "INSERT INTO `tbl_users`(`user_email`, `user_name`, `user_phone`, `user_password`, `user_otp`) VALUES ('$email','$name','$phone', '$hashedpassword','$otp')";
 	try{
 		if ($conn->query($sqlregister) === TRUE){
 			$response = array('status' => 'success', 'message' => 'User registered successfully');
@@ -36,7 +38,7 @@
 			sendJsonResponse($response);
 		}
 	}catch(Exception $e){
-		$response = array('status' => 'failed', 'message' => 'Error occurred: ' . $e->getMessage());
+		$response = array('status' => 'failed', 'message' => $e->getMessage());
 		sendJsonResponse($response);
 	}
 
