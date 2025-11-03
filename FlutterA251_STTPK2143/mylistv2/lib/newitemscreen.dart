@@ -1,7 +1,8 @@
 import 'dart:io';
-import 'dart:math';
-
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:image_picker/image_picker.dart';
 
 class NewItemScreen extends StatefulWidget {
   const NewItemScreen({super.key});
@@ -14,6 +15,8 @@ class _NewItemScreenStateState extends State<NewItemScreen> {
   late double screenHeight;
   late double screenWidth;
   File? image;
+  Uint8List? webImageBytes;
+
   @override
   Widget build(BuildContext context) {
     screenHeight = MediaQuery.of(context).size.height;
@@ -52,7 +55,7 @@ class _NewItemScreenStateState extends State<NewItemScreen> {
                               ? AssetImage("assets/camera128.png")
                               : FileImage(image!),
                           fit: BoxFit
-                              .none, // <--- Change this from .cover to .none
+                              .contain, // <--- Change this from .cover to .none
                         ),
                       ),
                     ),
@@ -104,17 +107,71 @@ class _NewItemScreenStateState extends State<NewItemScreen> {
               child: const Text("Camera"),
               onPressed: () {
                 Navigator.of(context).pop();
+                openCamera();
               },
             ),
             TextButton(
               child: const Text("Gallery"),
               onPressed: () {
                 Navigator.of(context).pop();
+                openGallery();
               },
             ),
           ],
         );
       },
     );
+  }
+
+  Future<void> openCamera() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.camera,
+      maxHeight: 800,
+      maxWidth: 800,
+    );
+
+    if (pickedFile != null) {
+      image = File(pickedFile.path);
+      cropImage();
+      // setState(() => image = File(pickedFile.path));
+    }
+  }
+
+  Future<void> openGallery() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxHeight: 800,
+      maxWidth: 800,
+    );
+
+    if (pickedFile != null) {
+      image = File(pickedFile.path);
+      cropImage();
+      // setState(() => image = File(pickedFile.path));
+    }
+  }
+
+  Future<void> cropImage() async {
+    CroppedFile? croppedFile = await ImageCropper().cropImage(
+      sourcePath: image!.path,
+      aspectRatio: const CropAspectRatio(ratioX: 5, ratioY: 3),
+      uiSettings: [
+        AndroidUiSettings(
+          toolbarTitle: 'Please Crop Your Image',
+          toolbarColor: Colors.deepPurple,
+          toolbarWidgetColor: Colors.white,
+          initAspectRatio: CropAspectRatioPreset.original,
+          lockAspectRatio: false,
+        ),
+        IOSUiSettings(title: 'Cropper'),
+      ],
+    );
+    if (croppedFile != null) {
+      File imageFile = File(croppedFile.path);
+      image = imageFile;
+      setState(() {});
+    }
   }
 }
