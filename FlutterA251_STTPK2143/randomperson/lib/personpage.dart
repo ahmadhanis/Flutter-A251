@@ -1,9 +1,8 @@
 import 'dart:convert';
 import 'dart:developer';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_cors_image/flutter_cors_image.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_network/image_network.dart';
 
 class PersonPage extends StatefulWidget {
   const PersonPage({super.key});
@@ -58,43 +57,45 @@ class _PersonPageState extends State<PersonPage> {
                               personList[index]['picture']['large'];
                           String country =
                               personList[index]['location']['country'];
-                          return Card(
-                            elevation: 2,
-                            shadowColor: Colors.red,
-                            margin: EdgeInsets.symmetric(
-                              vertical: 8,
-                              horizontal: 8,
-                            ),
-                            child: ListTile(
-                              leading: CustomNetworkImage(
-                                url: imageUrl,
-                                width: 50,
-                                height: 50,
-                                fit: BoxFit.contain,
-                                webStorageCacheConfig: WebStorageCacheConfig(
-                                  enabled: true, // Enable persistent caching
-                                  maxCacheSize:
-                                      100 * 1024 * 1024, // 100MB cache limit
-                                  cacheExpirationHours:
-                                      168, // 7 days expiration
+                          return SizedBox(
+                            height: 220,
+                            child: Card(
+                              elevation: 2,
+                              shadowColor: Colors.red,
+                              margin: EdgeInsets.symmetric(
+                                vertical: 8,
+                                horizontal: 8,
+                              ),
+                              child: ListTile(
+                                leading: SizedBox(
+                                  width: 200,
+                                  height: 200,
+                                  child: ImageNetwork(
+                                    image: imageUrl,
+                                    width: 200,
+                                    height: 200,
+                                    onError: const Icon(
+                                      Icons.error,
+                                      color: Colors.red,
+                                    ),
+                                  ),
                                 ),
-                                errorWidget: Icon(Icons.error),
-                              ),
 
-                              title: Text(name),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(email),
-                                  Text(phone),
-                                  Text(country),
-                                ],
-                              ),
-                              trailing: IconButton(
-                                icon: Icon(Icons.arrow_forward_ios),
-                                onPressed: () {
-                                  // Implement call functionality here
-                                },
+                                title: Text(name),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(email),
+                                    Text(phone),
+                                    Text(country),
+                                  ],
+                                ),
+                                trailing: IconButton(
+                                  icon: Icon(Icons.arrow_forward_ios),
+                                  onPressed: () {
+                                    // Implement call functionality here
+                                  },
+                                ),
                               ),
                             ),
                           );

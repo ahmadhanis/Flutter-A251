@@ -1,22 +1,20 @@
-name: randomperson
+name: mylistapp
 description: "A new Flutter project."
-publish_to: "none"
+publish_to: 'none'
 version: 0.1.0
 
 environment:
   sdk: ^3.9.2
 
 dependencies:
-  dio: ^5.9.0
   flutter:
     sdk: flutter
-  http: ^1.5.0
-  image_network: ^2.6.0
+  native_camera_view: ^0.0.14
 
 dev_dependencies:
-  flutter_lints: ^5.0.0
   flutter_test:
     sdk: flutter
+  flutter_lints: ^5.0.0
 
 flutter:
   uses-material-design: true
