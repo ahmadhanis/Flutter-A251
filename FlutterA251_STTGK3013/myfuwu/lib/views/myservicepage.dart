@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:myfuwu/models/user.dart';
 
@@ -71,8 +72,12 @@ class _MyServicePageState extends State<MyServicePage> {
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.grey),
                       borderRadius: BorderRadius.circular(10),
+                      image: DecorationImage(
+                        image: image == null
+                        ? AssetImage('assets/images/camera128.png')
+                        : FileImage(image!),
+                        ),
                     ),
-                    child: Text('Upload Image'),
                   ),
                 ),
                 SizedBox(height: 10),
@@ -199,7 +204,8 @@ class _MyServicePageState extends State<MyServicePage> {
     );
 
     if (pickedFile != null) {
-      setState(() => image = File(pickedFile.path));
+      image = File(pickedFile.path);
+      cropImage();
     }
   }
 
@@ -212,7 +218,30 @@ class _MyServicePageState extends State<MyServicePage> {
     );
 
     if (pickedFile != null) {
-      setState(() => image = File(pickedFile.path));
+      image = File(pickedFile.path);
+      cropImage();
+    }
+  }
+
+   Future<void> cropImage() async {
+    CroppedFile? croppedFile = await ImageCropper().cropImage(
+      sourcePath: image!.path,
+      aspectRatio: const CropAspectRatio(ratioX: 5, ratioY: 3),
+      uiSettings: [
+        AndroidUiSettings(
+          toolbarTitle: 'Please Crop Your Image',
+          toolbarColor: Colors.deepPurple,
+          toolbarWidgetColor: Colors.white,
+          initAspectRatio: CropAspectRatioPreset.original,
+          lockAspectRatio: false,
+        ),
+        IOSUiSettings(title: 'Cropper'),
+      ],
+    );
+    if (croppedFile != null) {
+      File imageFile = File(croppedFile.path);
+      image = imageFile;
+      setState(() {});
     }
   }
 }
