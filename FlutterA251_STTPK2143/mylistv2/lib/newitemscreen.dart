@@ -3,6 +3,9 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:mylistv2/databasehelper.dart';
+import 'package:mylistv2/mylist.dart';
+import 'package:path_provider/path_provider.dart';
 
 class NewItemScreen extends StatefulWidget {
   const NewItemScreen({super.key});
@@ -15,7 +18,8 @@ class _NewItemScreenStateState extends State<NewItemScreen> {
   late double screenHeight;
   late double screenWidth;
   File? image;
-  Uint8List? webImageBytes;
+  TextEditingController titleController = TextEditingController();
+  TextEditingController descriptionController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -62,6 +66,7 @@ class _NewItemScreenStateState extends State<NewItemScreen> {
                   ),
                   SizedBox(height: 10),
                   TextField(
+                    controller: titleController,
                     decoration: InputDecoration(
                       border: OutlineInputBorder(),
                       labelText: 'Item Name',
@@ -69,6 +74,7 @@ class _NewItemScreenStateState extends State<NewItemScreen> {
                   ),
                   SizedBox(height: 10),
                   TextField(
+                    controller: descriptionController,
                     decoration: InputDecoration(
                       border: OutlineInputBorder(),
                       labelText: 'Item Description',
@@ -77,7 +83,9 @@ class _NewItemScreenStateState extends State<NewItemScreen> {
                   ),
                   SizedBox(height: 10),
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      showConfirmDialog();
+                    },
                     style: ElevatedButton.styleFrom(
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -172,6 +180,78 @@ class _NewItemScreenStateState extends State<NewItemScreen> {
       File imageFile = File(croppedFile.path);
       image = imageFile;
       setState(() {});
+    }
+  }
+
+  void showConfirmDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Save Item"),
+          content: const Text("Are you sure you want to save this item?"),
+          actions: [
+            TextButton(
+              child: const Text("Cancel"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text("Save"),
+              onPressed: () {
+                saveItem( );
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> saveItem() async {
+    String title = titleController.text;
+    String description = descriptionController.text;
+    //get app directory to store image using path provider
+    Directory appDir = await getApplicationDocumentsDirectory();
+    
+    if (image != null) {
+      //generate random image name
+      String imageName = DateTime.now().millisecondsSinceEpoch.toString();
+      //store image to app dir with image name .png
+      image!.copy('${appDir.path}/$imageName.png');
+      // Save the item to the database
+      DatabaseHelper().insertMyList(
+        MyList(
+          title,
+          description,
+          "Pending",
+          DateTime.now().toString(),
+          image!.path,
+        ),
+      );
+      //snackbar if success
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Item saved successfully")));
+      return;
+    } else {
+      // Save the item to the database
+      DatabaseHelper().insertMyList(
+        MyList(
+          title,
+          description,
+          "Pending",
+          DateTime.now().toString(),
+          "NA",
+        ),
+      );
+      //snackbar if success
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Item saved successfully")));
+      return;
     }
   }
 }
