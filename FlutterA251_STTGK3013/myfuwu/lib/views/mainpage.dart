@@ -20,13 +20,7 @@ class _MainPageState extends State<MainPage> {
       body: Center(
         child: Column(
           children: [
-            Text('User ID: ${widget.user?.userId}'),
-            Text('User Email: ${widget.user?.userEmail}'),
-            Text('User Name: ${widget.user?.userName}'),
-            Text('User Phone: ${widget.user?.userPhone}'),
-            Text('User Password: ${widget.user?.userPassword}'),
-            Text('User OTP: ${widget.user?.userOtp}'),
-            Text('User Regdate: ${widget.user?.userRegdate}'),
+          
           ],
         ),
       ),

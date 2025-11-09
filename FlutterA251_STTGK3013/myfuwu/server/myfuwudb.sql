@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 02, 2025 at 03:23 AM
+-- Generation Time: Nov 09, 2025 at 03:21 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -20,6 +20,31 @@ SET time_zone = "+00:00";
 --
 -- Database: `myfuwudb`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tbl_services`
+--
+
+CREATE TABLE `tbl_services` (
+  `service_id` int(5) NOT NULL,
+  `user_id` varchar(5) NOT NULL,
+  `service_title` varchar(100) NOT NULL,
+  `service_desc` varchar(500) NOT NULL,
+  `service_district` varchar(50) NOT NULL,
+  `service_type` varchar(50) NOT NULL,
+  `service_rate` float(4,2) NOT NULL,
+  `service_date` datetime(6) NOT NULL DEFAULT current_timestamp(6)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `tbl_services`
+--
+
+INSERT INTO `tbl_services` (`service_id`, `user_id`, `service_title`, `service_desc`, `service_district`, `service_type`, `service_rate`, `service_date`) VALUES
+(1, '1', 'Sofa Cleaning Service', 'We clean your sofa at the comfort of your home', 'Bukit Kayu Hitam', 'Cleaning', 30.00, '2025-11-09 09:46:11.916272'),
+(2, '1', 'Walking Dog', 'Don\'t have time, let us walk your dog.', 'Bukit Kayu Hitam', 'Cleaning', 30.00, '2025-11-09 09:49:51.219117');
 
 -- --------------------------------------------------------
 
@@ -49,6 +74,12 @@ INSERT INTO `tbl_users` (`user_id`, `user_email`, `user_name`, `user_phone`, `us
 --
 
 --
+-- Indexes for table `tbl_services`
+--
+ALTER TABLE `tbl_services`
+  ADD PRIMARY KEY (`service_id`);
+
+--
 -- Indexes for table `tbl_users`
 --
 ALTER TABLE `tbl_users`
@@ -58,6 +89,12 @@ ALTER TABLE `tbl_users`
 --
 -- AUTO_INCREMENT for dumped tables
 --
+
+--
+-- AUTO_INCREMENT for table `tbl_services`
+--
+ALTER TABLE `tbl_services`
+  MODIFY `service_id` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `tbl_users`
