@@ -222,6 +222,7 @@ class _NewItemScreenStateState extends State<NewItemScreen> {
       //store image to app dir with image name .png
       image!.copy('${appDir.path}/$imageName.png');
       // Save the item to the database
+      print(image!.path);
       DatabaseHelper().insertMyList(
         MyList(
           title,

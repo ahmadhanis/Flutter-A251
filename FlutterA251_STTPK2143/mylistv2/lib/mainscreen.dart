@@ -26,15 +26,16 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("MyList V2"),
-      actions:[
-        IconButton(
-          icon: Icon(Icons.refresh),
-          onPressed: () {
-            loadData();
-          }
-        ),
-      ]
+      appBar: AppBar(
+        title: Text("MyList V2"),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.refresh),
+            onPressed: () {
+              loadData();
+            },
+          ),
+        ],
       ),
       body: Center(
         child: mylist.isEmpty
@@ -44,6 +45,8 @@ class _MainScreenState extends State<MainScreen> {
                 itemBuilder: (context, index) {
                   if (mylist[index].imagename == "NA") {
                     mylist[index].imagename = "assets/camera128.png";
+                  } else {
+                    // mylist[index].imagename = appDir.path + "/" + mylist[index].imagename;
                   }
 
                   return Card(
@@ -53,7 +56,8 @@ class _MainScreenState extends State<MainScreen> {
                         width: 50,
                         decoration: BoxDecoration(
                           image: DecorationImage(
-                            image: AssetImage('assets/camera128.png'),
+                            image: _loadImage(mylist[index].imagename),
+                            fit: BoxFit.cover,
                           ),
                         ),
                       ),
@@ -83,5 +87,21 @@ class _MainScreenState extends State<MainScreen> {
     mylist = [];
     mylist = await DatabaseHelper().getAllMyLists();
     setState(() {});
+  }
+
+  ImageProvider _loadImage(String imagename) {
+    // CASE 1: No image -> use default asset
+    if (imagename == "NA") {
+      return const AssetImage("assets/camera128.png");
+    }
+
+    // CASE 2: Image stored in app dir
+    final file = File(imagename);
+    if (file.existsSync()) {
+      return FileImage(file);
+    }
+
+    // CASE 3: If file missing, fallback to asset
+    return const AssetImage("assets/camera128.png");
   }
 }
