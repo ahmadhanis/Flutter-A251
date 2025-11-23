@@ -32,7 +32,7 @@ class _NewItemScreenStateState extends State<NewItemScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text("Add Item")),
+      appBar: AppBar(title: Text("Add To MyList")),
       body: SingleChildScrollView(
         child: Center(
           child: Padding(
@@ -69,7 +69,7 @@ class _NewItemScreenStateState extends State<NewItemScreen> {
                     controller: titleController,
                     decoration: InputDecoration(
                       border: OutlineInputBorder(),
-                      labelText: 'Item Name',
+                      labelText: 'List Title',
                     ),
                   ),
                   SizedBox(height: 10),
@@ -77,7 +77,7 @@ class _NewItemScreenStateState extends State<NewItemScreen> {
                     controller: descriptionController,
                     decoration: InputDecoration(
                       border: OutlineInputBorder(),
-                      labelText: 'Item Description',
+                      labelText: 'List Description',
                     ),
                     maxLines: 4,
                   ),
@@ -200,7 +200,7 @@ class _NewItemScreenStateState extends State<NewItemScreen> {
             TextButton(
               child: const Text("Save"),
               onPressed: () {
-                saveItem( );
+                saveItem();
                 Navigator.of(context).pop();
               },
             ),
@@ -215,7 +215,7 @@ class _NewItemScreenStateState extends State<NewItemScreen> {
     String description = descriptionController.text;
     //get app directory to store image using path provider
     Directory appDir = await getApplicationDocumentsDirectory();
-    
+
     if (image != null) {
       //generate random image name
       String imageName = DateTime.now().millisecondsSinceEpoch.toString();
@@ -239,13 +239,7 @@ class _NewItemScreenStateState extends State<NewItemScreen> {
     } else {
       // Save the item to the database
       DatabaseHelper().insertMyList(
-        MyList(
-          title,
-          description,
-          "Pending",
-          DateTime.now().toString(),
-          "NA",
-        ),
+        MyList(title, description, "Pending", DateTime.now().toString(), "NA"),
       );
       //snackbar if success
       ScaffoldMessenger.of(
