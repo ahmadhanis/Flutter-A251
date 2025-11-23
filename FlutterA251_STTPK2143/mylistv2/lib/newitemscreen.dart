@@ -20,7 +20,7 @@ class _NewItemScreenStateState extends State<NewItemScreen> {
   File? image;
   TextEditingController titleController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
-  DateFormat formatter = DateFormat('dd/MM/yyyy HH:mm:ss');
+  DateFormat formatter = DateFormat('dd/MM/yyyy HH:mm a');
 
   @override
   Widget build(BuildContext context) {
@@ -47,22 +47,29 @@ class _NewItemScreenStateState extends State<NewItemScreen> {
                       selectCameraGalleryDialog();
                     },
                     child: Container(
-                      // margin: const EdgeInsets.all(8),
                       height: screenHeight / 3,
                       decoration: BoxDecoration(
                         border: Border.all(width: 1),
                         borderRadius: BorderRadius.circular(10),
-                        image: DecorationImage(
-                          alignment: Alignment.center,
-                          scale:
-                              0.5, // The lower the number, the LARGER the image will appear.
-                          image: image == null
-                              ? AssetImage("assets/camera128.png")
-                              : FileImage(image!),
-                          fit: BoxFit
-                              .contain, // <--- Change this from .cover to .none
-                        ),
                       ),
+                      child: image == null
+                          ? Center(
+                              child: Icon(
+                                Icons.camera_alt,
+                                size: 80,
+                                color: Colors.grey,
+                              ),
+                            )
+                          : Container(
+                              decoration: BoxDecoration(
+                                image: DecorationImage(
+                                  alignment: Alignment.center,
+                                  scale: 0.5,
+                                  image: FileImage(image!),
+                                  fit: BoxFit.contain,
+                                ),
+                              ),
+                            ),
                     ),
                   ),
                   SizedBox(height: 10),
@@ -81,6 +88,11 @@ class _NewItemScreenStateState extends State<NewItemScreen> {
                       labelText: 'List Description',
                     ),
                     maxLines: 4,
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    "Date: ${formatter.format(DateTime.now())}",
+                    style: TextStyle(fontSize: 16),
                   ),
                   SizedBox(height: 10),
                   ElevatedButton(
@@ -185,6 +197,14 @@ class _NewItemScreenStateState extends State<NewItemScreen> {
   }
 
   void showConfirmDialog() {
+    if (titleController.text.isEmpty || titleController.text == "") {
+      //show snackbar
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Please enter title.")));
+      return;
+    }
+
     showDialog(
       context: context,
       builder: (BuildContext context) {

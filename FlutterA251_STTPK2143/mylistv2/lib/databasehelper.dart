@@ -7,16 +7,20 @@ class DatabaseHelper {
   static final _databaseVersion = 1;
   static final tablename = 'tbl_mylist';
 
+  // Create a single shared instance of DatabaseHelper (Singleton pattern)
   static final DatabaseHelper _instance = DatabaseHelper._internal();
+  // Factory constructor → always returns the SAME instance above
   factory DatabaseHelper() => _instance;
+  // Private named constructor → used only internally
   DatabaseHelper._internal();
 
+  // Holds the database object (initially null until opened)
   static Database? _db;
 
   Future<Database> get database async {
-    if (_db != null) return _db!;
-    _db = await _initDb();
-    return _db!;
+    if (_db != null) return _db!; // Database already loaded → return it
+    _db = await _initDb(); // Otherwise, open/create the database
+    return _db!; // Return the ready database
   }
 
   Future<Database> _initDb() async {
@@ -56,7 +60,7 @@ class DatabaseHelper {
     final db = await database;
     final List<Map<String, dynamic>> result = await db.query(
       tablename,
-      orderBy: 'id DESC',
+      orderBy: 'status DESC',
     );
     return result.map((e) => MyList.fromMap(e)).toList();
   }
