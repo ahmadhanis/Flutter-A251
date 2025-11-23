@@ -3,7 +3,13 @@ header("Access-Control-Allow-Origin: *"); // running as crome app
 
 if ($_SERVER['REQUEST_METHOD'] == 'GET') {
     include 'dbconnect.php';
-    $sqlloadservices = "SELECT * FROM `tbl_services`";
+    if (isset($_GET['search']) && !empty($_GET['search'])) {
+        $search = $_GET['search'];
+        $sqlloadservices = "SELECT * FROM `tbl_services` WHERE `service_desc` LIKE '%$search%' ORDER BY `service_id` DESC";    
+    }else{
+        $sqlloadservices = "SELECT * FROM `tbl_services` ORDER BY `service_id` DESC";
+    }
+    
     $result = $conn->query($sqlloadservices);
     if ($result->num_rows > 0) {
         $servicedata = array();

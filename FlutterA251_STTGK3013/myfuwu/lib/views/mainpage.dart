@@ -1,13 +1,13 @@
 import 'dart:convert';
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:myfuwu/models/myservice.dart';
 import 'package:myfuwu/myconfig.dart';
 import 'package:myfuwu/views/loginpage.dart';
 import 'package:myfuwu/models/user.dart';
+import 'package:myfuwu/shared/mydrawer.dart';
 import 'package:myfuwu/views/myservicepage.dart';
+import 'package:myfuwu/views/newservicepage.dart';
 
 class MainPage extends StatefulWidget {
   final User? user;
@@ -25,7 +25,7 @@ class _MainPageState extends State<MainPage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    loadServices();
+    loadServices('');
   }
 
   @override
@@ -35,8 +35,14 @@ class _MainPageState extends State<MainPage> {
         title: Text('Main Page'),
         actions: [
           IconButton(
+            icon: Icon(Icons.search),
             onPressed: () {
-              loadServices();
+              showSearchDialog();
+            },
+          ),
+          IconButton(
+            onPressed: () {
+              loadServices('');
             },
             icon: Icon(Icons.refresh),
           ),
@@ -116,20 +122,21 @@ class _MainPageState extends State<MainPage> {
             await Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => MyServicePage(user: widget.user),
+                builder: (context) => NewServicePage(user: widget.user),
               ),
             );
-            loadServices();
+            loadServices('');
           }
         },
         child: Icon(Icons.add),
       ),
+      drawer: MyDrawer(user: widget.user),
     );
   }
 
-  void loadServices() {
+  void loadServices(String searchQuery) {
     // TODO: implement loadServices
-    http.get(Uri.parse('${MyConfig.baseUrl}/myfuwu/api/loadservices.php')).then(
+    http.get(Uri.parse('${MyConfig.baseUrl}/myfuwu/api/loadservices.php?search=$searchQuery')).then(
       (response) {
         if (response.statusCode == 200) {
           var jsonResponse = response.body;
@@ -147,6 +154,44 @@ class _MainPageState extends State<MainPage> {
             status = "Failed to load services";
           });
         }
+      },
+    );
+  }
+
+  void showSearchDialog() {
+    TextEditingController searchController = TextEditingController(); 
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Search'),
+          content: TextField(
+            controller: searchController,
+            decoration: InputDecoration(
+              hintText: 'Enter search query',
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Search'),
+              onPressed: () {
+                String search = searchController.text;
+                if (search.isEmpty) {
+                  loadServices('');
+                } else {
+                  loadServices(search);
+                }
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
       },
     );
   }
