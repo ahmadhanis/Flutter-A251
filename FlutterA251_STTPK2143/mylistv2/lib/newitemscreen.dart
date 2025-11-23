@@ -1,8 +1,8 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:mylistv2/databasehelper.dart';
 import 'package:mylistv2/mylist.dart';
 import 'package:path_provider/path_provider.dart';
@@ -20,6 +20,7 @@ class _NewItemScreenStateState extends State<NewItemScreen> {
   File? image;
   TextEditingController titleController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
+  DateFormat formatter = DateFormat('dd/MM/yyyy HH:mm:ss');
 
   @override
   Widget build(BuildContext context) {
@@ -213,40 +214,46 @@ class _NewItemScreenStateState extends State<NewItemScreen> {
   Future<void> saveItem() async {
     String title = titleController.text;
     String description = descriptionController.text;
-    //get app directory to store image using path provider
+
+    // Directory where images should be stored permanently
     Directory appDir = await getApplicationDocumentsDirectory();
 
+    // Default image path stored in DB
+    String storedImagePath = "NA";
+
     if (image != null) {
-      //generate random image name
-      String imageName = DateTime.now().millisecondsSinceEpoch.toString();
-      //store image to app dir with image name .png
-      image!.copy('${appDir.path}/$imageName.png');
-      // Save the item to the database
-      print(image!.path);
-      DatabaseHelper().insertMyList(
-        MyList(
-          title,
-          description,
-          "Pending",
-          DateTime.now().toString(),
-          image!.path,
-        ),
-      );
-      //snackbar if success
+      // Generate unique name
+      String imageName = "${DateTime.now().millisecondsSinceEpoch}.png";
+
+      // Full file path inside app directory
+      storedImagePath = "${appDir.path}/$imageName";
+
+      // Copy the image from cache to the app directory
+      await image!.copy(storedImagePath);
+    }
+    String date = DateFormat('dd/MM/yyyy HH:mm a').format(DateTime.now());
+    // Save item to SQLite
+    await DatabaseHelper().insertMyList(
+      MyList(
+        0,
+        title,
+        description,
+        "Pending",
+        date,
+        storedImagePath, // <-- this is NOW correct!
+      ),
+    );
+
+    // Show success snackbar
+    if (mounted) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text("Item saved successfully")));
-      return;
-    } else {
-      // Save the item to the database
-      DatabaseHelper().insertMyList(
-        MyList(title, description, "Pending", DateTime.now().toString(), "NA"),
-      );
-      //snackbar if success
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Item saved successfully")));
-      return;
+      ).showSnackBar(const SnackBar(content: Text("Item saved successfully")));
+    }
+
+    // Go back to main screen
+    if (mounted) {
+      Navigator.pop(context);
     }
   }
 }

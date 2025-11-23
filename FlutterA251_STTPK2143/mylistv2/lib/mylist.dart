@@ -1,4 +1,5 @@
 class MyList {
+  int id;
   String title;
   String description;
   String status;
@@ -6,6 +7,7 @@ class MyList {
   String imagename;
 
   MyList(
+    this.id,
     this.title,
     this.description,
     this.status,
@@ -14,6 +16,7 @@ class MyList {
   );
   Map<String, dynamic> toMap() {
     return {
+      'id': id,
       'title': title,
       'description': description,
       'status': status,
@@ -24,6 +27,7 @@ class MyList {
 
   factory MyList.fromMap(Map<String, dynamic> map) {
     return MyList(
+      map['id'],
       map['title'],
       map['description'],
       map['status'],

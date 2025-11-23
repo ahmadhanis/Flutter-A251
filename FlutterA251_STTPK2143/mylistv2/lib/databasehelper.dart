@@ -44,27 +44,27 @@ class DatabaseHelper {
   // 🔹 CREATE
   Future<int> insertMyList(MyList mylist) async {
     final db = await database;
-    return await db.insert(
-      tablename,
-      mylist.toMap(),
-    );
+
+    final data = mylist.toMap();
+    data.remove("id"); // ⬅️ Force auto-increment
+
+    return await db.insert(tablename, data);
   }
 
   // 🔹 READ (Get all)
   Future<List<MyList>> getAllMyLists() async {
     final db = await database;
-    final List<Map<String, dynamic>> result = await db.query(tablename, orderBy: 'id DESC');
+    final List<Map<String, dynamic>> result = await db.query(
+      tablename,
+      orderBy: 'id DESC',
+    );
     return result.map((e) => MyList.fromMap(e)).toList();
   }
 
   // 🔹 READ (Get one by ID)
   Future<MyList?> getMyListById(int id) async {
     final db = await database;
-    final result = await db.query(
-      tablename,
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    final result = await db.query(tablename, where: 'id = ?', whereArgs: [id]);
     if (result.isNotEmpty) {
       return MyList.fromMap(result.first);
     }
@@ -72,24 +72,20 @@ class DatabaseHelper {
   }
 
   // 🔹 UPDATE
-  // Future<int> updateMyList(MyList mylist) async {
-  //   final db = await database;
-  //   return await db.update(
-  //     tablename,
-  //     mylist.toMap(),
-  //     where: 'id = ?',
-  //     whereArgs: [mylist.id],
-  //   );
-  // }
+  Future<int> updateMyList(MyList mylist) async {
+    final db = await database;
+    return await db.update(
+      tablename,
+      mylist.toMap(),
+      where: 'id = ?',
+      whereArgs: [mylist.id],
+    );
+  }
 
   // 🔹 DELETE (by ID)
   Future<int> deleteMyList(int id) async {
     final db = await database;
-    return await db.delete(
-      tablename,
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    return await db.delete(tablename, where: 'id = ?', whereArgs: [id]);
   }
 
   // 🔹 DELETE ALL
