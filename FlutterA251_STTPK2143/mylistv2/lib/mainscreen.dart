@@ -1,11 +1,9 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:mylistv2/databasehelper.dart';
 import 'package:mylistv2/mylist.dart';
 import 'package:mylistv2/newitemscreen.dart';
-import 'package:path_provider/path_provider.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -77,6 +75,7 @@ class _MainScreenState extends State<MainScreen> {
                           } else {
                             value = true;
                           }
+                          print(mylist[index].imagename);
 
                           return Card(
                             child: ListTile(
@@ -181,8 +180,12 @@ class _MainScreenState extends State<MainScreen> {
             ),
             TextButton(
               child: const Text("Delete"),
-              onPressed: () {
-                DatabaseHelper().deleteMyList(id);
+              onPressed: () async {
+                await DatabaseHelper().deleteMyList(id);
+                //show snackbar
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(const SnackBar(content: Text("Item deleted")));
                 loadData();
                 Navigator.pop(context);
               },
@@ -241,6 +244,7 @@ class _MainScreenState extends State<MainScreen> {
                   mylist[index].status = "Pending";
                 }
                 DatabaseHelper().updateMyList(mylist[index]);
+                loadData();
                 setState(() {});
               },
             ),

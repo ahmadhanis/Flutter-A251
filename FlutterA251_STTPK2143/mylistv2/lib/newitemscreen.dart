@@ -237,7 +237,8 @@ class _NewItemScreenStateState extends State<NewItemScreen> {
 
     // Directory where images should be stored permanently
     Directory appDir = await getApplicationDocumentsDirectory();
-
+    //print('App directory path:' + appDir.path);
+    //print('Cache image path:' + image!.path);
     // Default image path stored in DB
     String storedImagePath = "NA";
 

@@ -9,8 +9,11 @@ class DatabaseHelper {
 
   // Create a single shared instance of DatabaseHelper (Singleton pattern)
   static final DatabaseHelper _instance = DatabaseHelper._internal();
+
   // Factory constructor → always returns the SAME instance above
-  factory DatabaseHelper() => _instance;
+  factory DatabaseHelper() {
+    return _instance;
+  }
   // Private named constructor → used only internally
   DatabaseHelper._internal();
 
