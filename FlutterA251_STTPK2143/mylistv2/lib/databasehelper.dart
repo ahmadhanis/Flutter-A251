@@ -7,16 +7,23 @@ class DatabaseHelper {
   static final _databaseVersion = 1;
   static final tablename = 'tbl_mylist';
 
+  // Create a single shared instance of DatabaseHelper (Singleton pattern)
   static final DatabaseHelper _instance = DatabaseHelper._internal();
-  factory DatabaseHelper() => _instance;
+
+  // Factory constructor → always returns the SAME instance above
+  factory DatabaseHelper() {
+    return _instance;
+  }
+  // Private named constructor → used only internally
   DatabaseHelper._internal();
 
+  // Holds the database object (initially null until opened)
   static Database? _db;
 
   Future<Database> get database async {
-    if (_db != null) return _db!;
-    _db = await _initDb();
-    return _db!;
+    if (_db != null) return _db!; // Database already loaded → return it
+    _db = await _initDb(); // Otherwise, open/create the database
+    return _db!; // Return the ready database
   }
 
   Future<Database> _initDb() async {
@@ -44,27 +51,27 @@ class DatabaseHelper {
   // 🔹 CREATE
   Future<int> insertMyList(MyList mylist) async {
     final db = await database;
-    return await db.insert(
-      tablename,
-      mylist.toMap(),
-    );
+
+    final data = mylist.toMap();
+    data.remove("id"); // ⬅️ Force auto-increment
+
+    return await db.insert(tablename, data);
   }
 
   // 🔹 READ (Get all)
   Future<List<MyList>> getAllMyLists() async {
     final db = await database;
-    final List<Map<String, dynamic>> result = await db.query(tablename, orderBy: 'id DESC');
+    final List<Map<String, dynamic>> result = await db.query(
+      tablename,
+      orderBy: 'status DESC',
+    );
     return result.map((e) => MyList.fromMap(e)).toList();
   }
 
   // 🔹 READ (Get one by ID)
   Future<MyList?> getMyListById(int id) async {
     final db = await database;
-    final result = await db.query(
-      tablename,
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    final result = await db.query(tablename, where: 'id = ?', whereArgs: [id]);
     if (result.isNotEmpty) {
       return MyList.fromMap(result.first);
     }
@@ -72,24 +79,20 @@ class DatabaseHelper {
   }
 
   // 🔹 UPDATE
-  // Future<int> updateMyList(MyList mylist) async {
-  //   final db = await database;
-  //   return await db.update(
-  //     tablename,
-  //     mylist.toMap(),
-  //     where: 'id = ?',
-  //     whereArgs: [mylist.id],
-  //   );
-  // }
+  Future<int> updateMyList(MyList mylist) async {
+    final db = await database;
+    return await db.update(
+      tablename,
+      mylist.toMap(),
+      where: 'id = ?',
+      whereArgs: [mylist.id],
+    );
+  }
 
   // 🔹 DELETE (by ID)
   Future<int> deleteMyList(int id) async {
     final db = await database;
-    return await db.delete(
-      tablename,
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    return await db.delete(tablename, where: 'id = ?', whereArgs: [id]);
   }
 
   // 🔹 DELETE ALL
