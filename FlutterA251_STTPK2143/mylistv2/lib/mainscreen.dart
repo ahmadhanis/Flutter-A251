@@ -38,9 +38,22 @@ class _MainScreenState extends State<MainScreen> {
         title: Text("MyList V2"),
         actions: [
           IconButton(
+            icon: Icon(Icons.search),
+            onPressed: () {
+              showSearchDialog();
+            },
+          ),
+          IconButton(
             icon: Icon(Icons.refresh),
             onPressed: () {
               loadData();
+            },
+          ),
+          //delete all data
+          IconButton(
+            icon: Icon(Icons.delete),
+            onPressed: () {
+              showDeleteAllDialog();
             },
           ),
         ],
@@ -99,7 +112,10 @@ class _MainScreenState extends State<MainScreen> {
                                   ),
                                 ),
                               ),
-                              title: Text(mylist[index].title),
+                              title: Text(
+                                mylist[index].title,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                               subtitle: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -107,15 +123,18 @@ class _MainScreenState extends State<MainScreen> {
                                     (mylist[index].description.trim().isEmpty)
                                         ? "NA"
                                         : mylist[index].description,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
-                                  Text("Date: ${mylist[index].date}"),
                                 ],
                               ),
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   InkWell(
-                                    onTap: () {},
+                                    onTap: () {
+                                      //edit item
+                                      editItemDialog(mylist[index]);
+                                    },
                                     child: Icon((Icons.edit)),
                                   ),
                                   Checkbox(
@@ -127,7 +146,10 @@ class _MainScreenState extends State<MainScreen> {
                                   ),
                                 ],
                               ),
-                              onTap: () {},
+                              onTap: () {
+                                //show details
+                                showDetailsDialog(mylist[index]);
+                              },
                               onLongPress: () {
                                 //show dialog to delete item
                                 deleteDialog(mylist[index].id);
@@ -246,6 +268,189 @@ class _MainScreenState extends State<MainScreen> {
                 DatabaseHelper().updateMyList(mylist[index]);
                 loadData();
                 setState(() {});
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void editItemDialog(MyList mylist) {
+    TextEditingController titleController = TextEditingController(
+      text: mylist.title,
+    );
+    TextEditingController descriptionController = TextEditingController(
+      text: mylist.description,
+    );
+    bool value = false;
+    if (mylist.status == "Pending") {
+      value = false;
+    } else {
+      value = true;
+    }
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, newSetState) {
+            return AlertDialog(
+              title: const Text("Update Item"),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: titleController,
+                    decoration: const InputDecoration(labelText: "Title"),
+                  ),
+                  TextField(
+                    maxLines: 5,
+                    controller: descriptionController,
+                    decoration: const InputDecoration(labelText: "Description"),
+                  ),
+
+                  //List status row
+                  Row(
+                    children: [
+                      const Text("Status: "),
+                      Checkbox(
+                        value: value,
+                        onChanged: (newValue) {
+                          //dialog to confirm
+                          value = newValue!;
+                          newSetState(() {});
+                        },
+                      ),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        child: const Text("Cancel"),
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                      ),
+                      TextButton(
+                        child: const Text("Update"),
+                        onPressed: () async {
+                          mylist.title = titleController.text;
+                          mylist.status = value ? "Completed" : "Pending";
+                          mylist.description = descriptionController.text;
+                          await DatabaseHelper().updateMyList(mylist);
+                          loadData();
+                          Navigator.pop(context);
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void showDetailsDialog(MyList mylist) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("List Details"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              loadImageWidget(mylist.imagename),
+              SizedBox(height: 10),
+              Text(
+                mylist.title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                ),
+              ),
+              Text(mylist.description, textAlign: TextAlign.justify),
+              Text("Status: ${mylist.status}"),
+              Text("Date: ${mylist.date}"),
+            ],
+          ),
+          actions: [
+            TextButton(
+              child: const Text("Close"),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void showSearchDialog() {
+    TextEditingController searchController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Search Item"),
+          content: TextField(
+            controller: searchController,
+            decoration: const InputDecoration(
+              labelText: "Search by title/Description",
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: const Text("Cancel"),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+            TextButton(
+              child: const Text("Search"),
+              onPressed: () async {
+                Navigator.pop(context);
+                mylist = [];
+                mylist = await DatabaseHelper().searchMyList(
+                  searchController.text,
+                );
+                setState(() {});
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void showDeleteAllDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Delete All Items"),
+          content: const Text("Are you sure you want to delete all items?"),
+          actions: [
+            TextButton(
+              child: const Text("Cancel"),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+            TextButton(
+              child: const Text("Delete"),
+              onPressed: () async {
+                await DatabaseHelper().deleteAll();
+                //show snackbar
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("All items deleted.")),
+                );
+                loadData();
+                Navigator.pop(context);
               },
             ),
           ],
