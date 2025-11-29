@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_cropper/image_cropper.dart';
@@ -25,6 +27,9 @@ class _MyServicePageState extends State<NewServicePage> {
     'Painting',
     'Car Service',
     'Gardening',
+    'Handyman',
+    'Installation',
+    'Maid Service',
     'Other',
   ];
 
@@ -46,6 +51,7 @@ class _MyServicePageState extends State<NewServicePage> {
   String selectedservice = 'Cleaning';
   String selecteddistrict = 'Kubang Pasu';
   File? image;
+  Uint8List? webImage; // for web
   late double height, width;
 
   @override
@@ -69,21 +75,60 @@ class _MyServicePageState extends State<NewServicePage> {
                 children: [
                   GestureDetector(
                     onTap: () {
-                      pickimagedialog();
+                      if (kIsWeb) {
+                        openGallery();
+                      } else {
+                        pickimagedialog();
+                      }
                     },
                     child: Container(
-                      height: height / 3,
-                      alignment: Alignment.center,
                       width: width,
+                      height: height / 3,
                       decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey),
-                        borderRadius: BorderRadius.circular(10),
-                        image: DecorationImage(
-                          image: image == null
-                              ? AssetImage('assets/images/camera128.png')
-                              : FileImage(image!),
-                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        color: Colors.grey.shade200,
+                        border: Border.all(color: Colors.grey.shade400),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                        image: (image != null && !kIsWeb)
+                            ? DecorationImage(
+                                image: FileImage(image!),
+                                fit: BoxFit.cover,
+                              )
+                            : (webImage != null)
+                            ? DecorationImage(
+                                image: MemoryImage(webImage!),
+                                fit: BoxFit.cover,
+                              )
+                            : null, // no image → show icon instead
                       ),
+
+                      // If no image selected → show camera icon
+                      child: (image == null && webImage == null)
+                          ? Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: const [
+                                Icon(
+                                  Icons.camera_alt,
+                                  size: 80,
+                                  color: Colors.grey,
+                                ),
+                                SizedBox(height: 10),
+                                Text(
+                                  "Tap to add image",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            )
+                          : null,
                     ),
                   ),
                   SizedBox(height: 10),
@@ -215,58 +260,60 @@ class _MyServicePageState extends State<NewServicePage> {
 
   Future<void> openCamera() async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(
-      source: ImageSource.camera,
-      maxHeight: 800,
-      maxWidth: 800,
-    );
+    final pickedFile = await picker.pickImage(source: ImageSource.camera);
 
     if (pickedFile != null) {
-      image = File(pickedFile.path);
-      cropImage();
+      if (kIsWeb) {
+        webImage = await pickedFile.readAsBytes();
+        setState(() {});
+      } else {
+        image = File(pickedFile.path);
+        cropImage();
+      }
     }
   }
 
   Future<void> openGallery() async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(
-      source: ImageSource.gallery,
-      maxHeight: 800,
-      maxWidth: 800,
-    );
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
     if (pickedFile != null) {
-      image = File(pickedFile.path);
-      cropImage();
+      if (kIsWeb) {
+        webImage = await pickedFile.readAsBytes();
+        setState(() {});
+      } else {
+        image = File(pickedFile.path);
+        cropImage(); // only for mobile
+      }
     }
   }
 
   Future<void> cropImage() async {
+    if (kIsWeb) return; // skip cropping on web
     CroppedFile? croppedFile = await ImageCropper().cropImage(
       sourcePath: image!.path,
-      aspectRatio: const CropAspectRatio(ratioX: 5, ratioY: 3),
+      aspectRatio: CropAspectRatio(ratioX: 5, ratioY: 3),
       uiSettings: [
         AndroidUiSettings(
           toolbarTitle: 'Please Crop Your Image',
           toolbarColor: Colors.deepPurple,
           toolbarWidgetColor: Colors.white,
-          initAspectRatio: CropAspectRatioPreset.original,
-          lockAspectRatio: false,
         ),
         IOSUiSettings(title: 'Cropper'),
       ],
     );
+
     if (croppedFile != null) {
-      File imageFile = File(croppedFile.path);
-      image = imageFile;
+      image = File(croppedFile.path);
       setState(() {});
     }
   }
 
   void showSubmitDialog() {
-    if (titleController.text.isEmpty) {
+    // Title validation
+    if (titleController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text("Please enter title"),
           backgroundColor: Colors.red,
         ),
@@ -274,52 +321,67 @@ class _MyServicePageState extends State<NewServicePage> {
       return;
     }
 
-    if (image == null) {
+    // Image validation: mobile uses image, web uses webImage
+    if (!kIsWeb && image == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text("Please select an image"),
           backgroundColor: Colors.red,
         ),
       );
       return;
     }
-    if (hourlyrateController.text.isEmpty) {
+
+    if (kIsWeb && webImage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
+          content: Text("Please select an image"),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // Hourly rate
+    if (hourlyrateController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
           content: Text("Please enter hourly rate"),
           backgroundColor: Colors.red,
         ),
       );
       return;
     }
-    if (descriptionController.text.isEmpty) {
+
+    // Description
+    if (descriptionController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text("Please enter description"),
           backgroundColor: Colors.red,
         ),
       );
       return;
     }
+
+    // Confirm dialog
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Submit Service'),
-          content: Text('Are you sure you want to submit this service?'),
+          title: const Text('Submit Service'),
+          content: const Text('Are you sure you want to submit this service?'),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: Text('Cancel'),
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
             ),
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
                 submitService();
               },
-              child: Text('Submit'),
+              child: const Text('Submit'),
             ),
           ],
         );
@@ -328,8 +390,13 @@ class _MyServicePageState extends State<NewServicePage> {
   }
 
   void submitService() {
+    String base64image = "";
+    if (kIsWeb) {
+      base64image = base64Encode(webImage!);
+    } else {
+      base64image = base64Encode(image!.readAsBytesSync());
+    }
     String title = titleController.text.trim();
-    String base64image = base64Encode(image!.readAsBytesSync());
     String description = descriptionController.text.trim();
     String hourlyrate = hourlyrateController.text.trim();
 

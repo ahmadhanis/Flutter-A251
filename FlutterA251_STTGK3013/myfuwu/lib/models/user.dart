@@ -7,14 +7,22 @@ class User {
   String? userOtp;
   String? userRegdate;
 
-  User(
-      {this.userId,
-      this.userEmail,
-      this.userName,
-      this.userPhone,
-      this.userPassword,
-      this.userOtp,
-      this.userRegdate});
+  String? userAddress; // NEW
+  String? userLatitude; // Existing new
+  String? userLongitude; // Existing new
+
+  User({
+    this.userId,
+    this.userEmail,
+    this.userName,
+    this.userPhone,
+    this.userPassword,
+    this.userOtp,
+    this.userRegdate,
+    this.userAddress,
+    this.userLatitude,
+    this.userLongitude,
+  });
 
   User.fromJson(Map<String, dynamic> json) {
     userId = json['user_id'];
@@ -24,6 +32,10 @@ class User {
     userPassword = json['user_password'];
     userOtp = json['user_otp'];
     userRegdate = json['user_regdate'];
+
+    userAddress = json['user_address']; // NEW
+    userLatitude = json['user_latitude']; // NEW
+    userLongitude = json['user_longitude']; // NEW
   }
 
   Map<String, dynamic> toJson() {
@@ -35,6 +47,11 @@ class User {
     data['user_password'] = userPassword;
     data['user_otp'] = userOtp;
     data['user_regdate'] = userRegdate;
+
+    data['user_address'] = userAddress; // NEW
+    data['user_latitude'] = userLatitude; // NEW
+    data['user_longitude'] = userLongitude; // NEW
+
     return data;
   }
 }
