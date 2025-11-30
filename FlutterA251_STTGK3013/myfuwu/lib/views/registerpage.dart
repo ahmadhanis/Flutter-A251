@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:myfuwu/myconfig.dart';
 import 'package:myfuwu/views/loginpage.dart';
@@ -23,6 +25,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   late double height, width;
   bool visible = true;
   bool isLoading = false;
+  late Position mypostion;
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +38,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
       width = width;
     }
     return Scaffold(
-      appBar: AppBar(title: Text('Register Page')),
+      appBar: AppBar(
+        title: Text('Register Page'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.gps_fixed),
+            onPressed: () async {
+              mypostion = await _determinePosition();
+              print(mypostion.latitude);
+              print(mypostion.longitude);
+              List<Placemark> placemarks = await placemarkFromCoordinates(
+                mypostion.latitude,
+                mypostion.longitude,
+              );
+              print(placemarks[0].toString());
+            },
+          ),
+        ],
+      ),
       body: Center(
         child: SingleChildScrollView(
           child: Padding(
@@ -72,7 +92,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     decoration: InputDecoration(
                       labelText: 'Phone',
                       border: OutlineInputBorder(),
-                    ),  
+                    ),
                   ),
                   SizedBox(height: 5),
                   TextField(
@@ -199,7 +219,50 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  void registerUser(String email, String password, String name, String phone) async {
+  Future<Position> _determinePosition() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    // Test if location services are enabled.
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      // Location services are not enabled don't continue
+      // accessing the position and request users of the
+      // App to enable the location services.
+      return Future.error('Location services are disabled.');
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        // Permissions are denied, next time you could try
+        // requesting permissions again (this is also where
+        // Android's shouldShowRequestPermissionRationale
+        // returned true. According to Android guidelines
+        // your App should show an explanatory UI now.
+        return Future.error('Location permissions are denied');
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      // Permissions are denied forever, handle appropriately.
+      return Future.error(
+        'Location permissions are permanently denied, we cannot request permissions.',
+      );
+    }
+
+    // When we reach here, permissions are granted and we can
+    // continue accessing the position of the device.
+    return await Geolocator.getCurrentPosition();
+  }
+
+  void registerUser(
+    String email,
+    String password,
+    String name,
+    String phone,
+  ) async {
     setState(() {
       isLoading = true;
     });
@@ -221,10 +284,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     await http
         .post(
           Uri.parse('${MyConfig.baseUrl}/myfuwu/api/register.php'),
-          body: {'email': email, 
-          'name': name,
-          'phone': phone,
-          'password': password},
+          body: {
+            'email': email,
+            'name': name,
+            'phone': phone,
+            'password': password,
+          },
         )
         .then((response) {
           // log(response.body);
