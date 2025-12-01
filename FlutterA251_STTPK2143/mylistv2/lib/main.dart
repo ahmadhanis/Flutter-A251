@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mylistv2/loginscreen.dart';
 import 'package:mylistv2/mainscreen.dart';
 
 void main() {
@@ -54,7 +55,7 @@ class _SplashScreenState extends State<SplashScreen> {
     Future.delayed(Duration(seconds: 3), () {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => MainScreen()),
+        MaterialPageRoute(builder: (context) => LoginScreen()),
       );
     });
   }

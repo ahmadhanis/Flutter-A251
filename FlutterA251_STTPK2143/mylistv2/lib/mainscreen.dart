@@ -16,6 +16,10 @@ class _MainScreenState extends State<MainScreen> {
   List<MyList> mylist = [];
   late double screenwidth, screenHeight;
   String status = "Loading...";
+  int curpageno = 0;
+  int limit = 5;
+  int pages = 1;
+
   @override
   void initState() {
     // TODO: implement initState
@@ -67,7 +71,7 @@ class _MainScreenState extends State<MainScreen> {
                   children: [
                     Text(status, style: TextStyle(fontSize: 20)),
                     const SizedBox(height: 10),
-                    Icon(Icons.sentiment_dissatisfied, size: 50),
+                    Icon(Icons.find_in_page_outlined, size: 50),
                   ],
                 )
               : Column(
@@ -88,7 +92,6 @@ class _MainScreenState extends State<MainScreen> {
                           } else {
                             value = true;
                           }
-                          print(mylist[index].imagename);
 
                           return Card(
                             child: ListTile(
@@ -159,6 +162,31 @@ class _MainScreenState extends State<MainScreen> {
                         },
                       ),
                     ),
+                    //build row with pagination buttons
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.arrow_back_ios),
+                          onPressed: () {
+                            if (curpageno > 1) {
+                              curpageno = curpageno - 1;
+                              loadData();
+                            }
+                          },
+                        ),
+                        Text("Page $curpageno of $pages"),
+                        IconButton(
+                          icon: Icon(Icons.arrow_forward_ios),
+                          onPressed: () {
+                            if (curpageno < pages) {
+                              curpageno = curpageno + 1;
+                              loadData();
+                            }
+                          },
+                        ),
+                      ],
+                    ),
                   ],
                 ),
         ),
@@ -179,7 +207,17 @@ class _MainScreenState extends State<MainScreen> {
   Future<void> loadData() async {
     //load data from sqlite db and display as list.
     mylist = [];
-    mylist = await DatabaseHelper().getAllMyLists();
+    setState(() {
+      status = "Loading...";
+    });
+    int totalItems = await DatabaseHelper().getTotalCount();
+    print(totalItems);
+    pages = (totalItems / limit).ceil();
+    int index = (curpageno - 1) * limit;
+    mylist = await DatabaseHelper().getMyListsPaginated(
+      limit,
+      index,
+    ); //limit 10();
     if (mylist.isEmpty) {
       status = "No List found. Add one now!";
     }

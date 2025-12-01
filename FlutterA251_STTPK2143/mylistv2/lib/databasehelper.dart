@@ -59,13 +59,46 @@ class DatabaseHelper {
   }
 
   // 🔹 READ (Get all)
-  Future<List<MyList>> getAllMyLists() async {
+  // ---------------------------------------------------------
+  // PAGINATION (limit + offset)
+  // ---------------------------------------------------------
+  Future<List<MyList>> getMyListsPaginated(int limit, int offset) async {
     final db = await database;
+    // offset = offset - 1;
+    print(offset);
     final List<Map<String, dynamic>> result = await db.query(
       tablename,
-      orderBy: 'status DESC',
+      orderBy: 'status DESC, id DESC',
+      limit: limit,
+      offset: offset,
+      
     );
+
     return result.map((e) => MyList.fromMap(e)).toList();
+  }
+
+  // ---------------------------------------------------------
+  // OPTIONAL HELPER: GET BY PAGE NUMBER
+  // Example: page 0 = first page, page 1 = next page
+  // ---------------------------------------------------------
+  Future<List<MyList>> getPage(int pageNumber, int pageSize) async {
+    int offset = pageNumber * pageSize;
+
+    return await getMyListsPaginated(pageSize, offset);
+  }
+
+  // ---------------------------------------------------------
+  // COUNT TOTAL NUMBER OF ROWS
+  // ---------------------------------------------------------
+  Future<int> getTotalCount() async {
+    final db = await database;
+
+    final result = await db.rawQuery(
+      'SELECT COUNT(*) as total FROM $tablename',
+    );
+
+    // result looks like: [{total: 25}]
+    return Sqflite.firstIntValue(result) ?? 0;
   }
 
   // 🔹 READ (Get one by ID)
