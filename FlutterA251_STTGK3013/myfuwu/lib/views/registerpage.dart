@@ -21,11 +21,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
   TextEditingController phoneController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   TextEditingController confirmPasswordController = TextEditingController();
+  TextEditingController addressController = TextEditingController();
 
   late double height, width;
   bool visible = true;
   bool isLoading = false;
   late Position mypostion;
+  String address = "";
 
   @override
   Widget build(BuildContext context) {
@@ -38,22 +40,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       width = width;
     }
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Register Page'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.gps_fixed),
-            onPressed: () async {
-              mypostion = await _determinePosition();
-              print(mypostion.latitude);
-              print(mypostion.longitude);
-              List<Placemark> placemarks = await placemarkFromCoordinates(
-                mypostion.latitude,
-                mypostion.longitude,
-              );
-              print(placemarks[0].toString());
-            },
-          ),
+      appBar: AppBar(title: Text('Register Page'), actions: [
+        
         ],
       ),
       body: Center(
@@ -92,6 +80,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     decoration: InputDecoration(
                       labelText: 'Phone',
                       border: OutlineInputBorder(),
+                    ),
+                  ),
+                  SizedBox(height: 5),
+                  //address from reverse geocoding
+                  TextField(
+                    maxLines: 3,
+                    controller: addressController,
+                    decoration: InputDecoration(
+                      labelText: 'Address',
+                      border: OutlineInputBorder(),
+                      suffixIcon: IconButton(
+                        onPressed: () async {
+                          mypostion = await _determinePosition();
+                          print(mypostion.latitude);
+                          print(mypostion.longitude);
+                          List<Placemark> placemarks =
+                              await placemarkFromCoordinates(
+                                mypostion.latitude,
+                                mypostion.longitude,
+                              );
+                          Placemark place = placemarks[0];
+                          addressController.text =
+                              "${place.name},\n${place.street},\n${place.postalCode},${place.locality},\n${place.administrativeArea},${place.country}";
+                          setState(() {});
+                        },
+                        icon: Icon(Icons.location_on),
+                      ),
                     ),
                   ),
                   SizedBox(height: 5),
@@ -196,6 +211,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ScaffoldMessenger.of(context).showSnackBar(snackBar);
       return;
     }
+    if (addressController.text.isEmpty) {
+      SnackBar snackBar = const SnackBar(
+        content: Text('Please enter an address'),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      return;
+    }
+    if (mypostion.latitude.isNaN || mypostion.longitude.isNaN) {
+      SnackBar snackBar = const SnackBar(
+        content: Text('Please select an address'),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      return;
+    }
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -289,6 +318,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
             'name': name,
             'phone': phone,
             'password': password,
+            'address': addressController.text,
+            'latitude': mypostion.latitude.toString(),
+            'longitude': mypostion.longitude.toString(),
           },
         )
         .then((response) {

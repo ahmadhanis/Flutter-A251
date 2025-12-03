@@ -1,3 +1,3 @@
 class MyConfig {
-  static const String baseUrl = "http://slum78.myddns.me/";
+  static const String baseUrl = "http://10.19.121.95";
 }

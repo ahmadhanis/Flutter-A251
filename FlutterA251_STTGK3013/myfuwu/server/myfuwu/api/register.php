@@ -16,6 +16,11 @@
 	$email = $_POST['email'];
 	$name = $_POST['name'];
 	$phone = $_POST['phone'];
+	
+	$address = $_POST['address'];
+	$latitude = $_POST['latitude'];
+	$longitude = $_POST['longitude'];
+
 	$password = $_POST['password'];
 	$hashedpassword = sha1($password);
 	$otp = rand(100000, 999999);
@@ -28,7 +33,7 @@
 		exit();
 	}
 	// Insert new user into database
-	$sqlregister = "INSERT INTO `tbl_users`(`user_email`, `user_name`, `user_phone`, `user_password`, `user_otp`) VALUES ('$email','$name','$phone', '$hashedpassword','$otp')";
+	$sqlregister = "INSERT INTO `tbl_users`(`user_email`, `user_name`, `user_phone`, `user_address`, `user_latitude`, `user_longitude`, `user_password`, `user_otp`) VALUES ('$email','$name','$phone','$address','$latitude','$longitude', '$hashedpassword','$otp')";
 	try{
 		if ($conn->query($sqlregister) === TRUE){
 			$response = array('status' => 'success', 'message' => 'User registered successfully');

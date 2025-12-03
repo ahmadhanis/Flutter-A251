@@ -25,6 +25,10 @@ class _MainPageState extends State<MainPage> {
   String status = "Loading...";
   DateFormat formatter = DateFormat('dd/MM/yyyy hh:mm a');
   late double screenWidth, screenHeight;
+  int numofpage = 1;
+  int curpage = 1;
+  int numofresult = 0;
+  var color;
   @override
   void initState() {
     // TODO: implement initState
@@ -121,7 +125,7 @@ class _MainPageState extends State<MainPage> {
                                           0.22, // balanced aspect ratio
                                       color: Colors.grey[200],
                                       child: Image.network(
-                                        '${MyConfig.baseUrl}/myfuwu/assets/services/service_${listServices[index].serviceId}.PNG',
+                                        '${MyConfig.baseUrl}/myfuwu/assets/services/service_${listServices[index].serviceId}.png',
                                         fit: BoxFit.cover,
                                         errorBuilder:
                                             (context, error, stackTrace) {
@@ -215,6 +219,28 @@ class _MainPageState extends State<MainPage> {
                         },
                       ),
                     ),
+              //pagination builder
+              SizedBox(
+                height: screenHeight * 0.05,
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: numofpage,
+                  scrollDirection: Axis.horizontal,
+                  itemBuilder: (context, index) {
+                    color = (curpage - 1) == index ? Colors.red : Colors.black;
+                    return TextButton(
+                      onPressed: () {
+                        curpage = index + 1;
+                        loadServices('');
+                      },
+                      child: Text(
+                        (index + 1).toString(),
+                        style: TextStyle(color: color, fontSize: 18),
+                      ),
+                    );
+                  },
+                ),
+              ),
             ],
           ),
         ),
@@ -258,13 +284,13 @@ class _MainPageState extends State<MainPage> {
     http
         .get(
           Uri.parse(
-            '${MyConfig.baseUrl}/myfuwu/api/loadservices.php?search=$searchQuery',
+            '${MyConfig.baseUrl}/myfuwu/api/loadservices.php?search=$searchQuery&curpage=$curpage',
           ),
         )
         .then((response) {
           if (response.statusCode == 200) {
             var jsonResponse = jsonDecode(response.body);
-
+            // log(jsonResponse.toString());
             if (jsonResponse['status'] == 'success' &&
                 jsonResponse['data'] != null &&
                 jsonResponse['data'].isNotEmpty) {
@@ -273,7 +299,12 @@ class _MainPageState extends State<MainPage> {
               for (var item in jsonResponse['data']) {
                 listServices.add(MyService.fromJson(item));
               }
-
+              numofpage = int.parse(jsonResponse['numofpage'].toString());
+              numofresult = int.parse(
+                jsonResponse['numberofresult'].toString(),
+              );
+              print(numofpage);
+              print(numofresult);
               setState(() {
                 status = "";
               });
@@ -347,7 +378,7 @@ class _MainPageState extends State<MainPage> {
                 children: [
                   SizedBox(
                     child: Image.network(
-                      '${MyConfig.baseUrl}/myfuwu/assets/services/service_${listServices[index].serviceId}.PNG',
+                      '${MyConfig.baseUrl}/myfuwu/assets/services/service_${listServices[index].serviceId}.png',
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
                         return const Icon(
