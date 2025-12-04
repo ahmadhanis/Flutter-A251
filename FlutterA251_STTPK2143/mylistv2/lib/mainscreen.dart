@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:mylistv2/databasehelper.dart';
 import 'package:mylistv2/mylist.dart';
@@ -14,482 +13,1044 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   List<MyList> mylist = [];
-  late double screenwidth, screenHeight;
-  String status = "Loading...";
-  int curpageno = 0;
+  int curpageno = 1;
   int limit = 5;
   int pages = 1;
+  String status = "Loading...";
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     loadData();
   }
 
   @override
   Widget build(BuildContext context) {
-    screenHeight = MediaQuery.of(context).size.height;
-    screenwidth = MediaQuery.of(context).size.width;
-    if (screenwidth > 600) {
-      screenwidth = 600;
-    } else {
-      screenwidth = screenwidth;
-    }
+    final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text("MyList V2"),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.search),
-            onPressed: () {
-              showSearchDialog();
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.refresh),
-            onPressed: () {
-              loadData();
-            },
-          ),
-          //delete all data
-          IconButton(
-            icon: Icon(Icons.delete),
-            onPressed: () {
-              showDeleteAllDialog();
-            },
-          ),
-        ],
-      ),
-      body: SizedBox(
-        width: screenwidth,
-        child: Center(
-          child: mylist.isEmpty
-              ? Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(status, style: TextStyle(fontSize: 20)),
-                    const SizedBox(height: 10),
-                    Icon(Icons.find_in_page_outlined, size: 50),
-                  ],
-                )
-              : Column(
-                  children: [
-                    const SizedBox(height: 2),
-                    Text("Your Current List", style: TextStyle(fontSize: 20)),
-                    const SizedBox(height: 2),
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: mylist.length,
-                        itemBuilder: (context, index) {
-                          bool value = true;
-                          if (mylist[index].imagename == "NA") {
-                            mylist[index].imagename = "assets/camera128.png";
-                          }
-                          if (mylist[index].status == "Pending") {
-                            value = false;
-                          } else {
-                            value = true;
-                          }
+      backgroundColor: const Color(0xFFF3F0F7),
 
-                          return Card(
-                            child: ListTile(
-                              minTileHeight: screenHeight / 7,
-                              leading: Container(
-                                width: 80,
-                                height:
-                                    double.infinity, // Fills full tile height
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(8),
-                                  color:
-                                      Colors.grey[200], // background for icon
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: FittedBox(
-                                    fit: BoxFit.cover,
-                                    child: loadImageWidget(
-                                      mylist[index].imagename,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              title: Text(
-                                mylist[index].title,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    (mylist[index].description.trim().isEmpty)
-                                        ? "NA"
-                                        : mylist[index].description,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              ),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  InkWell(
-                                    onTap: () {
-                                      //edit item
-                                      editItemDialog(mylist[index]);
-                                    },
-                                    child: Icon((Icons.edit)),
-                                  ),
-                                  Checkbox(
-                                    value: value,
-                                    onChanged: (value) {
-                                      //dialog to confirm
-                                      confirmDialogStatus(index, value!);
-                                    },
-                                  ),
-                                ],
-                              ),
-                              onTap: () {
-                                //show details
-                                showDetailsDialog(mylist[index]);
-                              },
-                              onLongPress: () {
-                                //show dialog to delete item
-                                deleteDialog(mylist[index].id);
-                              },
-                            ),
-                          );
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: const Color(0xFF8E3B8E),
+        child: const Icon(Icons.add),
+        onPressed: () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const NewItemScreen()),
+          );
+          loadData();
+        },
+      ),
+
+      body: Column(
+        children: [
+          // ---------------------------------------------------------
+          // HEADER
+          // ---------------------------------------------------------
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.only(top: 60, bottom: 30),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF8E3B8E), Color(0xFF6A1B9A)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(22)),
+            ),
+            child: Column(
+              children: [
+                Stack(
+                  children: [
+                    // Centered title
+                    Center(
+                      child: Text(
+                        "MyList V2",
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 30,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+
+                    // Icon aligned far right
+                    Positioned(
+                      right: 0,
+                      child: IconButton(
+                        icon: const Icon(Icons.info, color: Colors.white),
+                        onPressed: () {
+                          showAboutAndDonate();
                         },
                       ),
                     ),
-                    //build row with pagination buttons
-                    Row(
+                  ],
+                ),
+
+                const SizedBox(height: 15),
+
+                // Search bar
+                // 🔍 Search Bar (Modern Floating Style + Reset Button)
+                Container(
+                  width: screenWidth * 0.9,
+                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black26.withValues(alpha: 0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.search, color: Colors.grey),
+
+                      const SizedBox(width: 8),
+
+                      // Tappable search field
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: showSearchDialog,
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 14),
+                            child: Text(
+                              "Search tasks...",
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // ❌ Reset Search Button
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Colors.grey),
+                        tooltip: "Reset search",
+                        onPressed: () {
+                          loadData(); // reload full list
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("Search reset")),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // ---------------------------------------------------------
+          // CONTENT AREA
+          // ---------------------------------------------------------
+          Expanded(
+            child: mylist.isEmpty
+                ? Center(
+                    child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        IconButton(
-                          icon: Icon(Icons.arrow_back_ios),
-                          onPressed: () {
-                            if (curpageno > 1) {
-                              curpageno = curpageno - 1;
-                              loadData();
-                            }
-                          },
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black12,
+                                blurRadius: 12,
+                                offset: Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Icon(
+                            Icons.folder_open_rounded,
+                            size: 60,
+                            color: Color(0xFF8E3B8E),
+                          ),
                         ),
-                        Text("Page $curpageno of $pages"),
-                        IconButton(
-                          icon: Icon(Icons.arrow_forward_ios),
-                          onPressed: () {
-                            if (curpageno < pages) {
-                              curpageno = curpageno + 1;
-                              loadData();
+
+                        const SizedBox(height: 20),
+
+                        Text(
+                          status,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+
+                        const SizedBox(height: 6),
+
+                        Text(
+                          "No items found. Add one to get started!",
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.all(12),
+                    itemCount: mylist.length,
+                    itemBuilder: (_, index) {
+                      final item = mylist[index];
+                      final isCompleted = item.status == "Completed";
+
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.06),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.all(12),
+
+                          // Image
+                          leading: ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: SizedBox(
+                              width: 65,
+                              height: 65,
+                              child: loadImageWidget(item.imagename),
+                            ),
+                          ),
+
+                          // Title + Description
+                          title: Text(
+                            item.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 17,
+                            ),
+                          ),
+
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(height: 4),
+                              Text(
+                                item.description.trim().isEmpty
+                                    ? "NA"
+                                    : item.description,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isCompleted
+                                      ? Colors.green[100]
+                                      : Colors.orange[100],
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(
+                                  item.status,
+                                  style: TextStyle(
+                                    color: isCompleted
+                                        ? Colors.green[800]
+                                        : Colors.orange[800],
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          trailing: SizedBox(
+                            width: 90, // enough space for edit + checkbox
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                GestureDetector(
+                                  onTap: () => editItemDialog(item),
+                                  child: Icon(Icons.edit, size: 22),
+                                ),
+                                Checkbox(
+                                  value: isCompleted,
+                                  onChanged: (val) {
+                                    confirmDialogStatus(index, val!);
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          onTap: () => showDetailsDialog(item),
+                          onLongPress: () => deleteDialog(item.id),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+
+          // Pagination
+          if (mylist.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back_ios),
+                    onPressed: curpageno > 1
+                        ? () {
+                            curpageno--;
+                            loadData();
+                          }
+                        : null,
+                  ),
+                  Text(
+                    "Page $curpageno of $pages",
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.arrow_forward_ios),
+                    onPressed: curpageno < pages
+                        ? () {
+                            curpageno++;
+                            loadData();
+                          }
+                        : null,
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------
+  // IMAGE LOADER
+  // ---------------------------------------------------------
+  Widget loadImageWidget(String imagename) {
+    if (imagename == "NA") {
+      return const Icon(
+        Icons.image_not_supported,
+        size: 40,
+        color: Colors.grey,
+      );
+    }
+    final file = File(imagename);
+    return file.existsSync()
+        ? Image.file(file, fit: BoxFit.cover)
+        : const Icon(Icons.broken_image, size: 40, color: Colors.grey);
+  }
+
+  // ---------------------------------------------------------
+  // LOAD DATA + PAGINATION
+  // ---------------------------------------------------------
+  Future<void> loadData() async {
+    setState(() {
+      status = "Loading...";
+      mylist = [];
+    });
+
+    final total = await DatabaseHelper().getTotalCount();
+    pages = (total / limit).ceil();
+
+    int offset = (curpageno - 1) * limit;
+    mylist = await DatabaseHelper().getMyListsPaginated(limit, offset);
+
+    if (mylist.isEmpty) status = "No items found.";
+    setState(() {});
+  }
+
+  // ---------------------------------------------------------
+  // DELETE ITEM
+  // ---------------------------------------------------------
+  void deleteDialog(int id) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(22),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              color: Colors.white,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Warning Icon
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.red.withValues(alpha: 0.1),
+                  ),
+                  child: const Icon(
+                    Icons.delete_forever_rounded,
+                    color: Colors.red,
+                    size: 42,
+                  ),
+                ),
+                const SizedBox(height: 18),
+
+                // Title
+                const Text(
+                  "Delete Item?",
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                ),
+
+                const SizedBox(height: 10),
+
+                // Description
+                Text(
+                  "This action cannot be undone.\nAre you sure you want to remove this item from your list?",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Colors.grey[700],
+                    height: 1.3,
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                // Buttons Row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Cancel Button
+                    Expanded(
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: Colors.grey.shade400),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text("Cancel"),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+
+                    // Delete Button
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        onPressed: () async {
+                          await DatabaseHelper().deleteMyList(id);
+                          if (context.mounted) {
+                            Navigator.pop(context);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Item deleted successfully"),
+                              ),
+                            );
+                          }
+                          loadData();
+                        },
+                        child: const Text("Delete"),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // ---------------------------------------------------------
+  // UPDATE STATUS
+  // ---------------------------------------------------------
+  void confirmDialogStatus(int index, bool value) {
+    final MyList item = mylist[index];
+    final String newStatus = value ? "Completed" : "Pending";
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(22),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color: Colors.white,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 🎨 Icon
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF8E3B8E).withValues(alpha: 0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    value ? Icons.check_circle : Icons.pending_actions,
+                    size: 45,
+                    color: const Color(0xFF8E3B8E),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // 📝 Title
+                Text(
+                  "Update Status",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF6A1B9A),
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
+                // 📌 Message
+                Text(
+                  "Do you want to mark this task as $newStatus?",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                ),
+
+                const SizedBox(height: 25),
+
+                // 🔘 Buttons Row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Cancel button
+                    Expanded(
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFF8E3B8E),
+                          side: const BorderSide(color: Color(0xFF8E3B8E)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        child: const Text("Cancel"),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ),
+
+                    const SizedBox(width: 12),
+
+                    // Update button
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF8E3B8E),
+                          foregroundColor: Colors.white,
+                          elevation: 3,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        child: const Text("Update"),
+                        onPressed: () async {
+                          Navigator.pop(context);
+
+                          // Update backend
+                          item.status = newStatus;
+                          await DatabaseHelper().updateMyList(item);
+
+                          // Refresh UI
+                          loadData();
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text("Status updated to $newStatus"),
+                                backgroundColor: Colors.green[600],
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // ---------------------------------------------------------
+  // EDIT ITEM
+  // ---------------------------------------------------------
+  void editItemDialog(MyList item) {
+    TextEditingController titleController = TextEditingController(
+      text: item.title,
+    );
+
+    TextEditingController descriptionController = TextEditingController(
+      text: item.description,
+    );
+
+    bool isCompleted = item.status == "Completed";
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          backgroundColor: Colors.white,
+          child: StatefulBuilder(
+            builder: (context, setState) {
+              return Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ---------------------------------------------------
+                    // TITLE
+                    // ---------------------------------------------------
+                    const Text(
+                      "Edit Item",
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
+                    const SizedBox(height: 18),
+
+                    // ---------------------------------------------------
+                    // TITLE INPUT
+                    // ---------------------------------------------------
+                    TextField(
+                      controller: titleController,
+                      decoration: InputDecoration(
+                        labelText: "Title",
+                        filled: true,
+                        fillColor: Colors.grey[100],
+                        prefixIcon: const Icon(Icons.title),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 15),
+
+                    // ---------------------------------------------------
+                    // DESCRIPTION INPUT
+                    // ---------------------------------------------------
+                    TextField(
+                      controller: descriptionController,
+                      maxLines: 4,
+                      decoration: InputDecoration(
+                        labelText: "Description",
+                        alignLabelWithHint: true,
+                        filled: true,
+                        fillColor: Colors.grey[100],
+                        prefixIcon: const Icon(Icons.description_outlined),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 15),
+
+                    // ---------------------------------------------------
+                    // STATUS SWITCH
+                    // ---------------------------------------------------
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isCompleted
+                            ? Colors.green[50]
+                            : Colors.orange[50],
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            isCompleted
+                                ? Icons.check_circle
+                                : Icons.pending_outlined,
+                            color: isCompleted
+                                ? Colors.green[700]
+                                : Colors.orange[700],
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            isCompleted ? "Completed" : "Pending",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: isCompleted
+                                  ? Colors.green[700]
+                                  : Colors.orange[700],
+                            ),
+                          ),
+                          const Spacer(),
+                          Switch(
+                            value: isCompleted,
+                            activeThumbColor: Colors.green,
+                            onChanged: (val) {
+                              setState(() => isCompleted = val);
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // ---------------------------------------------------
+                    // ACTION BUTTONS
+                    // ---------------------------------------------------
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.grey[700],
+                          ),
+                          child: const Text("Cancel"),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+
+                        const SizedBox(width: 10),
+
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF8E3B8E),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text("Update"),
+                          onPressed: () async {
+                            if (titleController.text.trim().isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Title cannot be empty."),
+                                ),
+                              );
+                              return;
                             }
+
+                            item.title = titleController.text.trim();
+                            item.description = descriptionController.text
+                                .trim();
+                            item.status = isCompleted ? "Completed" : "Pending";
+
+                            await DatabaseHelper().updateMyList(item);
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                            }
+                            loadData();
                           },
                         ),
                       ],
                     ),
                   ],
                 ),
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          await Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => NewItemScreen()),
-          );
-          loadData();
-        },
-        child: const Icon(Icons.add),
-      ),
-    );
-  }
-
-  Future<void> loadData() async {
-    //load data from sqlite db and display as list.
-    mylist = [];
-    setState(() {
-      status = "Loading...";
-    });
-    int totalItems = await DatabaseHelper().getTotalCount();
-    print(totalItems);
-    pages = (totalItems / limit).ceil();
-    int index = (curpageno - 1) * limit;
-    mylist = await DatabaseHelper().getMyListsPaginated(
-      limit,
-      index,
-    ); //limit 10();
-    if (mylist.isEmpty) {
-      status = "No List found. Add one now!";
-    }
-    setState(() {});
-  }
-
-  void deleteDialog(int id) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text("Delete Item"),
-          content: const Text("Are you sure you want to delete this item?"),
-          actions: [
-            TextButton(
-              child: const Text("Cancel"),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-            TextButton(
-              child: const Text("Delete"),
-              onPressed: () async {
-                await DatabaseHelper().deleteMyList(id);
-                //show snackbar
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(const SnackBar(content: Text("Item deleted")));
-                loadData();
-                Navigator.pop(context);
-              },
-            ),
-          ],
+              );
+            },
+          ),
         );
       },
     );
   }
 
-  Widget loadImageWidget(String imagename) {
-    // If no image stored
-    if (imagename == "NA") {
-      return const Icon(Icons.broken_image, size: 50, color: Colors.grey);
-    }
-
-    // If image exists
-    final file = File(imagename);
-    if (file.existsSync()) {
-      return Image.file(file, fit: BoxFit.fill);
-    }
-
-    // If file path invalid or missing
-    return const Icon(Icons.broken_image, size: 50, color: Colors.grey);
-  }
-
-  void confirmDialogStatus(int index, bool value) {
-    String st = "";
-
-    if (value) {
-      st = "Completed";
-    } else {
-      st = "Pending";
-    }
-    //dialog to confirm
+  // ---------------------------------------------------------
+  // DETAILS DIALOG
+  // ---------------------------------------------------------
+  void showDetailsDialog(MyList item) {
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text("Update Status"),
-          content: Text("Are you sure you want to update status to $st?"),
-          actions: [
-            TextButton(
-              child: const Text("Cancel"),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-            TextButton(
-              child: const Text("Update"),
-              onPressed: () {
-                Navigator.pop(context);
-                if (value == true) {
-                  mylist[index].status = "Completed";
-                } else {
-                  mylist[index].status = "Pending";
-                }
-                DatabaseHelper().updateMyList(mylist[index]);
-                loadData();
-                setState(() {});
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void editItemDialog(MyList mylist) {
-    TextEditingController titleController = TextEditingController(
-      text: mylist.title,
-    );
-    TextEditingController descriptionController = TextEditingController(
-      text: mylist.description,
-    );
-    bool value = false;
-    if (mylist.status == "Pending") {
-      value = false;
-    } else {
-      value = true;
-    }
-    showDialog(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, newSetState) {
-            return AlertDialog(
-              title: const Text("Update Item"),
-              content: Column(
+        return Dialog(
+          insetPadding: const EdgeInsets.all(20),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(18),
+              child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  TextField(
-                    controller: titleController,
-                    decoration: const InputDecoration(labelText: "Title"),
-                  ),
-                  TextField(
-                    maxLines: 5,
-                    controller: descriptionController,
-                    decoration: const InputDecoration(labelText: "Description"),
+                  // Image Preview
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: SizedBox(
+                      height: 200,
+                      width: double.infinity,
+                      child: loadImageWidget(item.imagename),
+                    ),
                   ),
 
-                  //List status row
+                  const SizedBox(height: 15),
+
+                  Text(
+                    item.title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 22,
+                    ),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  Text(
+                    item.description,
+                    style: TextStyle(fontSize: 16, color: Colors.grey[800]),
+                    textAlign: TextAlign.justify,
+                  ),
+
+                  const SizedBox(height: 12),
+
                   Row(
                     children: [
-                      const Text("Status: "),
-                      Checkbox(
-                        value: value,
-                        onChanged: (newValue) {
-                          //dialog to confirm
-                          value = newValue!;
-                          newSetState(() {});
-                        },
+                      _infoChip(
+                        Icons.check_circle,
+                        item.status,
+                        item.status == "Completed"
+                            ? Colors.green[700]
+                            : Colors.orange[700],
+                      ),
+                      const SizedBox(width: 10),
+                      _infoChip(
+                        Icons.calendar_today,
+                        item.date,
+                        Colors.blueGrey[700],
                       ),
                     ],
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton(
-                        child: const Text("Cancel"),
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
+
+                  const SizedBox(height: 20),
+
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF8E3B8E),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
-                      TextButton(
-                        child: const Text("Update"),
-                        onPressed: () async {
-                          mylist.title = titleController.text;
-                          mylist.status = value ? "Completed" : "Pending";
-                          mylist.description = descriptionController.text;
-                          await DatabaseHelper().updateMyList(mylist);
-                          loadData();
-                          Navigator.pop(context);
-                        },
-                      ),
-                    ],
+                      child: const Text("Close"),
+                      onPressed: () => Navigator.pop(context),
+                    ),
                   ),
                 ],
               ),
-            );
-          },
+            ),
+          ),
         );
       },
     );
   }
 
-  void showDetailsDialog(MyList mylist) {
+  Widget _infoChip(IconData icon, String text, Color? color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(30),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 6),
+          Text(
+            text,
+            style: TextStyle(color: color, fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------
+  // SEARCH DIALOG
+  // ---------------------------------------------------------
+  void showSearchDialog() {
+    TextEditingController searchController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // -------------------------------------------
+                // TITLE
+                // -------------------------------------------
+                const Text(
+                  "Search Items",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+
+                const SizedBox(height: 16),
+
+                // -------------------------------------------
+                // SEARCH BAR
+                // -------------------------------------------
+                TextField(
+                  controller: searchController,
+                  autofocus: true,
+                  textInputAction: TextInputAction.search,
+                  onSubmitted: (_) => _performSearch(searchController.text),
+                  decoration: InputDecoration(
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: searchController.text.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              searchController.clear();
+                              setState(() {});
+                            },
+                          )
+                        : null,
+                    hintText: "Search by title or description...",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // -------------------------------------------
+                // BUTTONS
+                // -------------------------------------------
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      style: TextButton.styleFrom(foregroundColor: Colors.red),
+                      child: const Text("Cancel"),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                    const SizedBox(width: 10),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF8E3B8E),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        elevation: 3,
+                      ),
+                      child: const Text("Search"),
+                      onPressed: () {
+                        _performSearch(searchController.text);
+                        Navigator.pop(context);
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _performSearch(String keyword) async {
+    mylist = await DatabaseHelper().searchMyList(keyword.trim());
+    status = mylist.isEmpty ? "No items match your search." : "";
+    setState(() {});
+  }
+
+  void showAboutAndDonate() {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text("List Details"),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Text("About & Donate"),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              loadImageWidget(mylist.imagename),
-              SizedBox(height: 10),
-              Text(
-                mylist.title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                ),
+              const Text(
+                "MyList V2\nA simple and beautiful task manager.\n\n"
+                "If you find this app useful, consider supporting its development!",
+                textAlign: TextAlign.center,
               ),
-              Text(mylist.description, textAlign: TextAlign.justify),
-              Text("Status: ${mylist.status}"),
-              Text("Date: ${mylist.date}"),
+              const SizedBox(height: 20),
+              ElevatedButton.icon(
+                icon: const Icon(Icons.favorite),
+                label: const Text("Donate"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF8E3B8E),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: () {},
+              ),
             ],
           ),
           actions: [
             TextButton(
               child: const Text("Close"),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void showSearchDialog() {
-    TextEditingController searchController = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text("Search Item"),
-          content: TextField(
-            controller: searchController,
-            decoration: const InputDecoration(
-              labelText: "Search by title/Description",
-            ),
-          ),
-          actions: [
-            TextButton(
-              child: const Text("Cancel"),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-            TextButton(
-              child: const Text("Search"),
-              onPressed: () async {
-                Navigator.pop(context);
-                mylist = [];
-                mylist = await DatabaseHelper().searchMyList(
-                  searchController.text,
-                );
-                setState(() {});
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void showDeleteAllDialog() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text("Delete All Items"),
-          content: const Text("Are you sure you want to delete all items?"),
-          actions: [
-            TextButton(
-              child: const Text("Cancel"),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-            TextButton(
-              child: const Text("Delete"),
-              onPressed: () async {
-                await DatabaseHelper().deleteAll();
-                //show snackbar
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("All items deleted.")),
-                );
-                loadData();
-                Navigator.pop(context);
-              },
+              onPressed: () => Navigator.pop(context),
             ),
           ],
         );

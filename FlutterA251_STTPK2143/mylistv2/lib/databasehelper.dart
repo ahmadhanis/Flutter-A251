@@ -65,7 +65,6 @@ class DatabaseHelper {
   Future<List<MyList>> getMyListsPaginated(int limit, int offset) async {
     final db = await database;
     // offset = offset - 1;
-    print(offset);
     final List<Map<String, dynamic>> result = await db.query(
       tablename,
       orderBy: 'status DESC, id DESC',
