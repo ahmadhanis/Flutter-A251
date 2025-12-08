@@ -1,7 +1,9 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
 
@@ -20,20 +22,52 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.slumberjer.mylistv2"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
 
+    // ---------------------------------------------------------
+    // LOAD key.properties (REQUIRED for release signing)
+    // ---------------------------------------------------------
+    val keystorePropsFile = rootProject.file("key.properties")
+    val keystoreProps = Properties()
+
+    if (!keystorePropsFile.exists()) {
+        throw GradleException(
+            "Missing android/key.properties! Create it to sign release builds."
+        )
+    } else {
+        keystoreProps.load(FileInputStream(keystorePropsFile))
+    }
+
+    // ---------------------------------------------------------
+    // SIGNING CONFIG FOR RELEASE
+    // ---------------------------------------------------------
+    signingConfigs {
+        create("release") {
+            storeFile = file(keystoreProps["storeFile"] as String)
+            storePassword = keystoreProps["storePassword"] as String
+            keyAlias = keystoreProps["keyAlias"] as String
+            keyPassword = keystoreProps["keyPassword"] as String
+        }
+    }
+
+    // ---------------------------------------------------------
+    // BUILD TYPES
+    // ---------------------------------------------------------
     buildTypes {
-        release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
+        getByName("release") {
+            signingConfig = signingConfigs.getByName("release")
+
+            // Recommended for Play Store
+            isMinifyEnabled = true
+            isShrinkResources = true
+        }
+
+        getByName("debug") {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
@@ -43,7 +77,6 @@ flutter {
     source = "../.."
 }
 
-// --- ADD THIS DEPENDENCIES BLOCK ---
 dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
 }

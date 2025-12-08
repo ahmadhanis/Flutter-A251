@@ -66,7 +66,7 @@ class _NewItemScreenState extends State<NewItemScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 20),
                 child: Text(
-                  "Add New Item",
+                  "Add New Entry",
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 28,
@@ -208,7 +208,7 @@ class _NewItemScreenState extends State<NewItemScreen> {
                               ),
                             ),
                             child: const Text(
-                              "Save Item",
+                              "Save Entry",
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -422,7 +422,7 @@ class _NewItemScreenState extends State<NewItemScreen> {
                 const SizedBox(height: 10),
 
                 Text(
-                  "Do you want to save this item to your list?",
+                  "Do you want to save this entry to your list?",
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 15, color: Colors.grey[700]),
                 ),
@@ -513,7 +513,7 @@ class _NewItemScreenState extends State<NewItemScreen> {
     if (mounted) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text("Item saved successfully")));
+      ).showSnackBar(const SnackBar(content: Text("Entry saved successfully")));
       Navigator.pop(context);
     }
   }

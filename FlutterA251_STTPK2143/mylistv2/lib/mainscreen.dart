@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:mylistv2/databasehelper.dart';
+import 'package:mylistv2/loginscreen.dart';
 import 'package:mylistv2/mylist.dart';
 import 'package:mylistv2/newitemscreen.dart';
 
@@ -76,6 +77,19 @@ class _MainScreenState extends State<MainScreen> {
                     ),
 
                     // Icon aligned far right
+                    Positioned(
+                      right: 40,
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.exit_to_app,
+                          color: Colors.white,
+                        ),
+                        onPressed: () {
+                          //push to login dialog
+                          showLogoutDialog();
+                        },
+                      ),
+                    ),
                     Positioned(
                       right: 0,
                       child: IconButton(
@@ -190,7 +204,7 @@ class _MainScreenState extends State<MainScreen> {
                         const SizedBox(height: 6),
 
                         Text(
-                          "No items found. Add one to get started!",
+                          "No task found. Add one to get started!",
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.grey[600],
@@ -413,7 +427,7 @@ class _MainScreenState extends State<MainScreen> {
     int offset = (curpageno - 1) * limit;
     mylist = await DatabaseHelper().getMyListsPaginated(limit, offset);
 
-    if (mylist.isEmpty) status = "No items found.";
+    if (mylist.isEmpty) status = "Not Available.";
     setState(() {});
   }
 
@@ -454,7 +468,7 @@ class _MainScreenState extends State<MainScreen> {
 
                 // Title
                 const Text(
-                  "Delete Item?",
+                  "Delete Entry?",
                   style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
 
@@ -462,7 +476,7 @@ class _MainScreenState extends State<MainScreen> {
 
                 // Description
                 Text(
-                  "This action cannot be undone.\nAre you sure you want to remove this item from your list?",
+                  "This action cannot be undone.\nAre you sure you want to remove this entry from your list?",
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 15,
@@ -509,7 +523,7 @@ class _MainScreenState extends State<MainScreen> {
                             Navigator.pop(context);
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text("Item deleted successfully"),
+                                content: Text("Entry deleted successfully"),
                               ),
                             );
                           }
@@ -688,7 +702,7 @@ class _MainScreenState extends State<MainScreen> {
                     // TITLE
                     // ---------------------------------------------------
                     const Text(
-                      "Edit Item",
+                      "Edit Entry",
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -977,7 +991,7 @@ class _MainScreenState extends State<MainScreen> {
                 // TITLE
                 // -------------------------------------------
                 const Text(
-                  "Search Items",
+                  "Search List",
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
 
@@ -1050,7 +1064,7 @@ class _MainScreenState extends State<MainScreen> {
 
   void _performSearch(String keyword) async {
     mylist = await DatabaseHelper().searchMyList(keyword.trim());
-    status = mylist.isEmpty ? "No items match your search." : "";
+    status = mylist.isEmpty ? "No task match your search." : "";
     setState(() {});
   }
 
@@ -1092,6 +1106,120 @@ class _MainScreenState extends State<MainScreen> {
               onPressed: () => Navigator.pop(context),
             ),
           ],
+        );
+      },
+    );
+  }
+
+  void showLogoutDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: true, // tap outside to dismiss
+      builder: (context) {
+        return Dialog(
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 30,
+            vertical: 24,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(22),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // -------------------------------------------------------
+                // ICON
+                // -------------------------------------------------------
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.red.withValues(alpha: 0.12),
+                  ),
+                  child: const Icon(Icons.logout, size: 42, color: Colors.red),
+                ),
+
+                const SizedBox(height: 20),
+
+                // -------------------------------------------------------
+                // TITLE
+                // -------------------------------------------------------
+                const Text(
+                  "Logout?",
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+
+                const SizedBox(height: 12),
+
+                // -------------------------------------------------------
+                // MESSAGE
+                // -------------------------------------------------------
+                Text(
+                  "Are you sure you want to logout from MyList V2?",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey[700],
+                    height: 1.4,
+                  ),
+                ),
+
+                const SizedBox(height: 26),
+
+                // -------------------------------------------------------
+                // BUTTONS
+                // -------------------------------------------------------
+                Row(
+                  children: [
+                    // CANCEL BUTTON
+                    Expanded(
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFF8E3B8E),
+                          side: const BorderSide(color: Color(0xFF8E3B8E)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        child: const Text("Cancel"),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ),
+
+                    const SizedBox(width: 12),
+
+                    // LOGOUT BUTTON
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF8E3B8E),
+                          foregroundColor: Colors.white,
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        child: const Text("Logout"),
+                        onPressed: () {
+                          Navigator.pop(context); // close dialog first
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const LoginScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         );
       },
     );

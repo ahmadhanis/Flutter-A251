@@ -12,7 +12,7 @@ void main() {
     expect(find.text("MyList V2"), findsOneWidget);
 
     // Fast forward time by 6 seconds to allow navigation (Splash waits 5)
-    await tester.pump(const Duration(seconds: 6));
+    await tester.pump(const Duration(seconds: 2));
 
     // Rebuild after time passage
     await tester.pumpAndSettle();
