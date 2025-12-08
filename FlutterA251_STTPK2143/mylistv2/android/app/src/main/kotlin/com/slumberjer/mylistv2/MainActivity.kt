@@ -1,4 +1,4 @@
-package com.example.mylistv2
+package com.slumberjer.mylistv2
 
 import io.flutter.embedding.android.FlutterActivity
 

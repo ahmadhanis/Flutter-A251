@@ -205,100 +205,139 @@ class _MainScreenState extends State<MainScreen> {
                     itemBuilder: (_, index) {
                       final item = mylist[index];
                       final isCompleted = item.status == "Completed";
-
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(14),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.06),
-                              blurRadius: 8,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.all(12),
-
-                          // Image
-                          leading: ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: SizedBox(
-                              width: 65,
-                              height: 65,
-                              child: loadImageWidget(item.imagename),
-                            ),
+                      return InkWell(
+                        onTap: () => showDetailsDialog(item),
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(14),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.06),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
                           ),
-
-                          // Title + Description
-                          title: Text(
-                            item.title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 17,
-                            ),
-                          ),
-
-                          subtitle: Column(
+                          child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const SizedBox(height: 4),
-                              Text(
-                                item.description.trim().isEmpty
-                                    ? "NA"
-                                    : item.description,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
+                              // =====================================================================
+                              // 1) IMAGE SECTION - takes 30% width
+                              // =====================================================================
+                              SizedBox(
+                                width: screenWidth * 0.20,
+                                height: 80,
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: loadImageWidget(item.imagename),
+                                ),
                               ),
-                              const SizedBox(height: 6),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 4,
+
+                              const SizedBox(width: 12),
+
+                              // =====================================================================
+                              // 2) CONTENT SECTION - takes ~50% width
+                              // =====================================================================
+                              SizedBox(
+                                width: screenWidth * 0.50 - 40,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      item.title,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 17,
+                                      ),
+                                    ),
+
+                                    const SizedBox(height: 4),
+
+                                    Text(
+                                      item.description.trim().isEmpty
+                                          ? "NA"
+                                          : item.description,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+
+                                    const SizedBox(height: 6),
+
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: isCompleted
+                                            ? Colors.green[100]
+                                            : Colors.orange[100],
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: Text(
+                                        item.status,
+                                        style: TextStyle(
+                                          color: isCompleted
+                                              ? Colors.green[800]
+                                              : Colors.orange[800],
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                decoration: BoxDecoration(
-                                  color: isCompleted
-                                      ? Colors.green[100]
-                                      : Colors.orange[100],
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Text(
-                                  item.status,
-                                  style: TextStyle(
-                                    color: isCompleted
-                                        ? Colors.green[800]
-                                        : Colors.orange[800],
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                              ),
+
+                              // =====================================================================
+                              // 3) ACTION BUTTONS SECTION - remaining width (~20%)
+                              // =====================================================================
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    // Top Row: Edit + Delete icons
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        IconButton(
+                                          icon: const Icon(
+                                            Icons.edit,
+                                            size: 22,
+                                          ),
+                                          onPressed: () => editItemDialog(item),
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(
+                                            Icons.delete,
+                                            size: 22,
+                                            color: Colors.red,
+                                          ),
+                                          onPressed: () =>
+                                              deleteDialog(item.id),
+                                        ),
+                                      ],
+                                    ),
+
+                                    // Bottom: Checkbox
+                                    Checkbox(
+                                      value: isCompleted,
+                                      onChanged: (val) =>
+                                          confirmDialogStatus(index, val!),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
                           ),
-                          trailing: SizedBox(
-                            width: 90, // enough space for edit + checkbox
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                GestureDetector(
-                                  onTap: () => editItemDialog(item),
-                                  child: Icon(Icons.edit, size: 22),
-                                ),
-                                Checkbox(
-                                  value: isCompleted,
-                                  onChanged: (val) {
-                                    confirmDialogStatus(index, val!);
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          onTap: () => showDetailsDialog(item),
-                          onLongPress: () => deleteDialog(item.id),
                         ),
                       );
                     },
@@ -598,7 +637,7 @@ class _MainScreenState extends State<MainScreen> {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text("Status updated to $newStatus"),
-                                backgroundColor: Colors.green[600],
+                                // backgroundColor: Colors.green[600],
                               ),
                             );
                           }
