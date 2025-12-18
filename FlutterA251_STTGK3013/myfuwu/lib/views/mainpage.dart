@@ -288,6 +288,7 @@ class _MainPageState extends State<MainPage> {
           ),
         )
         .then((response) {
+          print(response.body); 
           if (response.statusCode == 200) {
             var jsonResponse = jsonDecode(response.body);
             // log(jsonResponse.toString());
