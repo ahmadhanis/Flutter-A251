@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_typing_uninitialized_variables
+
 import 'dart:convert';
 import 'dart:developer';
 import 'package:flutter/material.dart';
@@ -43,106 +45,111 @@ class _MainPageState extends State<MainPage> {
 
     final contentWidth = screenWidth > 900 ? 900.0 : screenWidth;
 
-    return Scaffold(
-      backgroundColor: Colors.grey.shade100,
+    return WillPopScope(
+      onWillPop: () async {
+        return await _showExitDialog();
+      },
+      child: Scaffold(
+        backgroundColor: Colors.grey.shade100,
 
-      // ────────────────── APP BAR ──────────────────
-      appBar: buildModernAppBar(),
+        // ────────────────── APP BAR ──────────────────
+        appBar: buildModernAppBar(),
 
-      // ────────────────── BODY ──────────────────
-      body: Center(
-        child: SizedBox(
-          width: contentWidth,
-          child: Column(
-            children: [
-              Expanded(
-                child: listServices.isEmpty
-                    ? _buildEmptyState()
-                    : _buildServiceList(),
-              ),
+        // ────────────────── BODY ──────────────────
+        body: Center(
+          child: SizedBox(
+            width: contentWidth,
+            child: Column(
+              children: [
+                Expanded(
+                  child: listServices.isEmpty
+                      ? _buildEmptyState()
+                      : _buildServiceList(),
+                ),
 
-              // ───────── PAGINATION ─────────
-            ],
+                // ───────── PAGINATION ─────────
+              ],
+            ),
           ),
         ),
-      ),
-      // 🔥 MOVE PAGINATION HERE
-      bottomNavigationBar: listServices.isNotEmpty
-          ? Container(
-              height: 56,
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    blurRadius: 6,
-                    color: Colors.black.withOpacity(0.08),
-                  ),
-                ],
-              ),
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: numofpage,
-                itemBuilder: (context, index) {
-                  final isActive = (curpage - 1) == index;
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: TextButton(
-                      style: TextButton.styleFrom(
-                        backgroundColor: isActive
-                            ? const Color(0xFF1F3C88)
-                            : Colors.grey.shade200,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      onPressed: () {
-                        curpage = index + 1;
-                        loadServices('');
-                      },
-                      child: Text(
-                        '${index + 1}',
-                        style: TextStyle(
-                          color: isActive ? Colors.white : Colors.black,
-                          fontSize: 16,
-                        ),
-                      ),
+        // 🔥 MOVE PAGINATION HERE
+        bottomNavigationBar: listServices.isNotEmpty
+            ? Container(
+                height: 56,
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      blurRadius: 6,
+                      color: Colors.black.withValues(alpha: 0.08),
                     ),
-                  );
-                },
-              ),
-            )
-          : null,
-      // ────────────────── FAB ──────────────────
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: const Color(0xFF2EC4B6),
-        icon: const Icon(Icons.add),
-        label: const Text("New Service"),
-        onPressed: () async {
-          if (widget.user?.userId == '0') {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text("Please login or register first"),
-                backgroundColor: Colors.red,
-              ),
-            );
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const LoginPage()),
-            );
-          } else {
-            await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => NewServicePage(user: widget.user),
-              ),
-            );
-            loadServices('');
-          }
-        },
-      ),
+                  ],
+                ),
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: numofpage,
+                  itemBuilder: (context, index) {
+                    final isActive = (curpage - 1) == index;
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: TextButton(
+                        style: TextButton.styleFrom(
+                          backgroundColor: isActive
+                              ? const Color(0xFF1F3C88)
+                              : Colors.grey.shade200,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        onPressed: () {
+                          curpage = index + 1;
+                          loadServices('');
+                        },
+                        child: Text(
+                          '${index + 1}',
+                          style: TextStyle(
+                            color: isActive ? Colors.white : Colors.black,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              )
+            : null,
+        // ────────────────── FAB ──────────────────
+        floatingActionButton: FloatingActionButton.extended(
+          backgroundColor: const Color(0xFF2EC4B6),
+          icon: const Icon(Icons.add),
+          label: const Text("New Service"),
+          onPressed: () async {
+            if (widget.user?.userId == '0') {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text("Please login or register first"),
+                  backgroundColor: Colors.red,
+                ),
+              );
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const LoginPage()),
+              );
+            } else {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => NewServicePage(user: widget.user),
+                ),
+              );
+              loadServices('');
+            }
+          },
+        ),
 
-      drawer: MyDrawer(user: widget.user),
+        drawer: MyDrawer(user: widget.user),
+      ),
     );
   }
 
@@ -216,7 +223,9 @@ class _MainPageState extends State<MainPage> {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF1F3C88).withOpacity(0.12),
+                            color: const Color(
+                              0xFF1F3C88,
+                            ).withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
@@ -275,10 +284,9 @@ class _MainPageState extends State<MainPage> {
           ),
         )
         .then((response) {
-          print(response.body);
           if (response.statusCode == 200) {
             var jsonResponse = jsonDecode(response.body);
-            // log(jsonResponse.toString());
+            log(jsonResponse.toString());
             if (jsonResponse['status'] == 'success' &&
                 jsonResponse['data'] != null &&
                 jsonResponse['data'].isNotEmpty) {
@@ -291,8 +299,6 @@ class _MainPageState extends State<MainPage> {
               numofresult = int.parse(
                 jsonResponse['numberofresult'].toString(),
               );
-              print(numofpage);
-              print(numofresult);
               setState(() {
                 status = "";
               });
@@ -380,7 +386,7 @@ class _MainPageState extends State<MainPage> {
           child: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
+              color: Colors.white.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, size: 20),
@@ -646,7 +652,7 @@ class _MainPageState extends State<MainPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.blueGrey.withOpacity(0.12),
+        color: Colors.blueGrey.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
@@ -688,7 +694,7 @@ class _MainPageState extends State<MainPage> {
       radius: 28,
       child: CircleAvatar(
         radius: 22,
-        backgroundColor: Colors.blueGrey.withOpacity(0.15),
+        backgroundColor: Colors.blueGrey.withValues(alpha: 0.15),
         child: Icon(icon, color: Colors.blueGrey),
       ),
     );
@@ -711,8 +717,33 @@ class _MainPageState extends State<MainPage> {
         }
       }
     } catch (e) {
-      print('Error fetching user details: $e');
+      log(e.toString());
     }
     return owner;
+  }
+
+  Future<bool> _showExitDialog() async {
+    return await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: const Text("Exit App"),
+            content: const Text("Are you sure you want to exit MyFuwu?"),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text("Cancel"),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text("Exit"),
+              ),
+            ],
+          ),
+        ) ??
+        false;
   }
 }

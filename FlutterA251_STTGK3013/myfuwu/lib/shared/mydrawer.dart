@@ -4,6 +4,8 @@ import 'package:myfuwu/shared/animated_route.dart';
 import 'package:myfuwu/views/loginpage.dart';
 import 'package:myfuwu/views/mainpage.dart';
 import 'package:myfuwu/views/myservicepage.dart';
+import 'package:myfuwu/views/profilepage.dart';
+import 'package:myfuwu/views/settingpage.dart';
 
 class MyDrawer extends StatefulWidget {
   final User? user;
@@ -30,6 +32,7 @@ class _MyDrawerState extends State<MyDrawer> {
             leading: Icon(Icons.home),
             title: Text('Home'),
             onTap: () {
+              Navigator.pop(context);
               Navigator.pushReplacement(
                 context,
                 AnimatedRoute.slideFromRight(MainPage(user: widget.user)),
@@ -40,6 +43,7 @@ class _MyDrawerState extends State<MyDrawer> {
             leading: Icon(Icons.room_service),
             title: Text('My Services'),
             onTap: () {
+              Navigator.pop(context);
               Navigator.pushReplacement(
                 context,
                 AnimatedRoute.slideFromRight(MyServicePage(user: widget.user)),
@@ -50,47 +54,97 @@ class _MyDrawerState extends State<MyDrawer> {
             leading: Icon(Icons.settings),
             title: Text('Settings'),
             onTap: () {
-              // Navigator.push(
-              //   context,
-              //   MaterialPageRoute(builder: (context) => LoginPage()),
-              // );
+              Navigator.pop(context);
+              Navigator.pushReplacement(
+                context,
+                AnimatedRoute.slideFromRight(SettingPage(user: widget.user)),
+              );
             },
           ),
           ListTile(
             leading: Icon(Icons.person),
             title: Text('Profile'),
             onTap: () {
-              // Navigator.push(
-              //   context,
-              //   MaterialPageRoute(builder: (context) => LoginPage()),
-              // );
+              if (widget.user?.userId == '0') {
+                //showdialog
+                showDialog(
+                  context: context,
+                  builder: (_) => AlertDialog(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    title: Row(
+                      children: const [
+                        Icon(Icons.lock_outline, color: Color(0xFF1F3C88)),
+                        SizedBox(width: 8),
+                        Text("Login Required"),
+                      ],
+                    ),
+                    content: const Text(
+                      "Please login to continue and access this feature.",
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text("Cancel"),
+                      ),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF1F3C88),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.pushReplacement(
+                            context,
+                            AnimatedRoute.slideFromRight(const LoginPage()),
+                          );
+                        },
+                        child: const Text(
+                          "Login",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+
+                return;
+              }
+              Navigator.pop(context);
+              if (widget.user != null) {
+                Navigator.pushReplacement(
+                  context,
+                  AnimatedRoute.slideFromRight(ProfilePage(user: widget.user!)),
+                );
+              }
             },
           ),
-          ListTile(
-            leading: Icon(Icons.login),
-            title: Text('Login'),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => LoginPage()),
-              );
-            },
-          ),
-           const Divider(
-            color: Colors.grey,
-          ),
+          // ListTile(
+          //   leading: Icon(Icons.login),
+          //   title: Text('Login'),
+          //   onTap: () {
+          //     Navigator.push(
+          //       context,
+          //       MaterialPageRoute(builder: (context) => LoginPage()),
+          //     );
+          //   },
+          // ),
+          const Divider(color: Colors.grey),
           SizedBox(
             height: screenHeight / 3.5,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.end,
-              children: const [Text("Version 0.1b",style: TextStyle(color: Colors.grey),)],
+              children: const [
+                Text("Version 0.1b", style: TextStyle(color: Colors.grey)),
+              ],
             ),
-          )
+          ),
         ],
       ),
     );
-
   }
 }

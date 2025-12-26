@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -167,7 +168,7 @@ class _LoginPageState extends State<LoginPage> {
                         onPressed: loginuser,
                         child: const Text(
                           "Login",
-                          style: TextStyle(fontSize: 16,color: Colors.white),
+                          style: TextStyle(fontSize: 16, color: Colors.white),
                         ),
                       ),
                     ),
@@ -190,6 +191,39 @@ class _LoginPageState extends State<LoginPage> {
                           },
                           child: const Text(
                             "Register",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1F3C88),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text("Just Browsing? "),
+                        GestureDetector(
+                          onTap: () {
+                            User user = User(
+                              userId: '0',
+                              userEmail: 'guest@email.com',
+                              userPassword: 'guest',
+                              userOtp: '0000',
+                              userRegdate: '0000-00-00',
+                              userName: 'Guest',
+                              userPhone: '0000000000',
+                              userCredit: 0,
+                            );
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => MainPage(user: user),
+                              ),
+                            );
+                          },
+                          child: const Text(
+                            "Go Home",
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Color(0xFF1F3C88),
@@ -253,9 +287,10 @@ class _LoginPageState extends State<LoginPage> {
           body: {'email': email, 'password': password},
         )
         .then((response) {
+          log(response.body);
           if (response.statusCode == 200) {
             var jsonResponse = response.body;
-            // print(jsonResponse);
+            log(jsonResponse);
             var resarray = jsonDecode(jsonResponse);
             if (resarray['status'] == 'success') {
               //print(resarray['data'][0]);
@@ -265,10 +300,10 @@ class _LoginPageState extends State<LoginPage> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text("Login successful"),
-                  backgroundColor: Colors.green,
+                  // backgroundColor: Colors.green,
                 ),
               );
-              Navigator.pop(context);
+              // Navigator.pop(context);
               // Navigate to home page or dashboard
               Navigator.pushReplacement(
                 context,
