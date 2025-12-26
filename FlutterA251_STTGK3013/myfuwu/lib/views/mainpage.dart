@@ -40,238 +40,225 @@ class _MainPageState extends State<MainPage> {
   Widget build(BuildContext context) {
     screenWidth = MediaQuery.of(context).size.width;
     screenHeight = MediaQuery.of(context).size.height;
-    if (screenWidth > 600) {
-      screenWidth = 600;
-    } else {
-      screenWidth = screenWidth;
-    }
+
+    final contentWidth = screenWidth > 900 ? 900.0 : screenWidth;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Main Page'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.search),
-            onPressed: () {
-              showSearchDialog();
-            },
-          ),
-          IconButton(
-            onPressed: () {
-              loadServices('');
-            },
-            icon: Icon(Icons.refresh),
-          ),
+      backgroundColor: Colors.grey.shade100,
 
-          IconButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => LoginPage()),
-              );
-            },
-            icon: Icon(Icons.login),
-          ),
-        ],
-      ),
+      // ────────────────── APP BAR ──────────────────
+      appBar: buildModernAppBar(),
+
+      // ────────────────── BODY ──────────────────
       body: Center(
         child: SizedBox(
-          width: screenWidth,
+          width: contentWidth,
           child: Column(
             children: [
-              listServices.isEmpty
-                  ? Expanded(
-                      child: Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.find_in_page_outlined, size: 64),
-                            SizedBox(height: 12),
-                            Text(
-                              status,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 18),
-                            ),
-                          ],
+              Expanded(
+                child: listServices.isEmpty
+                    ? _buildEmptyState()
+                    : _buildServiceList(),
+              ),
+
+              // ───────── PAGINATION ─────────
+            ],
+          ),
+        ),
+      ),
+      // 🔥 MOVE PAGINATION HERE
+      bottomNavigationBar: listServices.isNotEmpty
+          ? Container(
+              height: 56,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    blurRadius: 6,
+                    color: Colors.black.withOpacity(0.08),
+                  ),
+                ],
+              ),
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: numofpage,
+                itemBuilder: (context, index) {
+                  final isActive = (curpage - 1) == index;
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: TextButton(
+                      style: TextButton.styleFrom(
+                        backgroundColor: isActive
+                            ? const Color(0xFF1F3C88)
+                            : Colors.grey.shade200,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                    )
-                  : Expanded(
-                      child: ListView.builder(
-                        itemCount: listServices.length,
-                        itemBuilder: (BuildContext context, int index) {
-                          return Card(
-                            elevation: 4,
-                            margin: const EdgeInsets.symmetric(
-                              vertical: 6,
-                              horizontal: 8,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(10),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // IMAGE
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(12),
-                                    child: Container(
-                                      width:
-                                          screenWidth * 0.28, // more responsive
-                                      height:
-                                          screenWidth *
-                                          0.22, // balanced aspect ratio
-                                      color: Colors.grey[200],
-                                      child: Image.network(
-                                        '${MyConfig.baseUrl}/myfuwu/assets/services/service_${listServices[index].serviceId}.png',
-                                        fit: BoxFit.cover,
-                                        errorBuilder:
-                                            (context, error, stackTrace) {
-                                              return const Icon(
-                                                Icons.broken_image,
-                                                size: 60,
-                                                color: Colors.grey,
-                                              );
-                                            },
-                                      ),
-                                    ),
-                                  ),
-
-                                  const SizedBox(width: 12),
-
-                                  // TEXT AREA
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        // TITLE
-                                        Text(
-                                          listServices[index].serviceTitle
-                                              .toString(),
-                                          style: const TextStyle(
-                                            fontSize: 17,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-
-                                        const SizedBox(height: 4),
-
-                                        // DESCRIPTION
-                                        Text(
-                                          listServices[index].serviceDesc
-                                              .toString(),
-                                          style: const TextStyle(
-                                            fontSize: 14,
-                                            color: Colors.black87,
-                                          ),
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-
-                                        const SizedBox(height: 6),
-
-                                        // DISTRICT TAG
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 8,
-                                            vertical: 4,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: Colors.blueGrey.withOpacity(
-                                              0.15,
-                                            ),
-                                            borderRadius: BorderRadius.circular(
-                                              8,
-                                            ),
-                                          ),
-                                          child: Text(
-                                            listServices[index].serviceDistrict
-                                                .toString(),
-                                            style: const TextStyle(
-                                              fontSize: 13,
-                                              color: Colors.blueGrey,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-
-                                  // TRAILING ARROW BUTTON
-                                  IconButton(
-                                    onPressed: () {
-                                      showDetailsDialog(index);
-                                    },
-                                    icon: const Icon(
-                                      Icons.arrow_forward_ios,
-                                      size: 18,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-              //pagination builder
-              SizedBox(
-                height: screenHeight * 0.05,
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: numofpage,
-                  scrollDirection: Axis.horizontal,
-                  itemBuilder: (context, index) {
-                    color = (curpage - 1) == index ? Colors.red : Colors.black;
-                    return TextButton(
                       onPressed: () {
                         curpage = index + 1;
                         loadServices('');
                       },
                       child: Text(
-                        (index + 1).toString(),
-                        style: TextStyle(color: color, fontSize: 18),
+                        '${index + 1}',
+                        style: TextStyle(
+                          color: isActive ? Colors.white : Colors.black,
+                          fontSize: 16,
+                        ),
                       ),
-                    );
-                  },
-                ),
+                    ),
+                  );
+                },
               ),
-            ],
-          ),
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
+            )
+          : null,
+      // ────────────────── FAB ──────────────────
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: const Color(0xFF2EC4B6),
+        icon: const Icon(Icons.add),
+        label: const Text("New Service"),
         onPressed: () async {
-          // Action for the button
           if (widget.user?.userId == '0') {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text("Please login first/or register first"),
+              const SnackBar(
+                content: Text("Please login or register first"),
                 backgroundColor: Colors.red,
               ),
             );
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const LoginPage()),
+              MaterialPageRoute(builder: (_) => const LoginPage()),
             );
           } else {
             await Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => NewServicePage(user: widget.user),
+                builder: (_) => NewServicePage(user: widget.user),
               ),
             );
             loadServices('');
           }
         },
-        child: Icon(Icons.add),
       ),
+
       drawer: MyDrawer(user: widget.user),
+    );
+  }
+
+  Widget _buildServiceList() {
+    return ListView.builder(
+      padding: const EdgeInsets.all(10),
+      itemCount: listServices.length,
+      itemBuilder: (context, index) {
+        return Card(
+          elevation: 3,
+          margin: const EdgeInsets.symmetric(vertical: 6),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(14),
+            onTap: () => showDetailsDialog(index),
+            child: Padding(
+              padding: const EdgeInsets.all(10),
+              child: Row(
+                children: [
+                  // IMAGE
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      width: 110,
+                      height: 90,
+                      color: Colors.grey.shade200,
+                      child: Image.network(
+                        '${MyConfig.baseUrl}/myfuwu/assets/services/service_${listServices[index].serviceId}.png',
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => const Icon(
+                          Icons.camera_alt_outlined,
+                          size: 40,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(width: 12),
+
+                  // TEXT
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          listServices[index].serviceTitle.toString(),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          listServices[index].serviceDesc.toString(),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey.shade700,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1F3C88).withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            listServices[index].serviceDistrict.toString(),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF1F3C88),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const Icon(
+                    Icons.arrow_forward_ios,
+                    size: 16,
+                    color: Colors.grey,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.search, size: 72, color: Colors.grey.shade400),
+          const SizedBox(height: 16),
+          Text(
+            status.isEmpty ? "No services available" : status,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 18, color: Colors.grey.shade700),
+          ),
+        ],
+      ),
     );
   }
 
@@ -288,7 +275,7 @@ class _MainPageState extends State<MainPage> {
           ),
         )
         .then((response) {
-          print(response.body); 
+          print(response.body);
           if (response.statusCode == 200) {
             var jsonResponse = jsonDecode(response.body);
             // log(jsonResponse.toString());
@@ -326,324 +313,384 @@ class _MainPageState extends State<MainPage> {
         });
   }
 
+  AppBar buildModernAppBar() {
+    return AppBar(
+      elevation: 0,
+      backgroundColor: const Color(0xFF1F3C88),
+      foregroundColor: Colors.white,
+      titleSpacing: 16,
+
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: const [
+          Text(
+            "MyFuwu",
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.5,
+            ),
+          ),
+          SizedBox(height: 2),
+          Text(
+            "Your One Stop Services",
+            style: TextStyle(fontSize: 12, color: Colors.white70),
+          ),
+        ],
+      ),
+
+      actions: [
+        _buildAppBarIcon(
+          icon: Icons.search,
+          tooltip: "Search",
+          onTap: showSearchDialog,
+        ),
+        _buildAppBarIcon(
+          icon: Icons.refresh,
+          tooltip: "Refresh",
+          onTap: () => loadServices(''),
+        ),
+        _buildAppBarIcon(
+          icon: Icons.login,
+          tooltip: "Login",
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => LoginPage()),
+            );
+          },
+        ),
+        const SizedBox(width: 8),
+      ],
+    );
+  }
+
+  Widget _buildAppBarIcon({
+    required IconData icon,
+    required VoidCallback onTap,
+    String? tooltip,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: Tooltip(
+          message: tooltip ?? '',
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, size: 20),
+          ),
+        ),
+      ),
+    );
+  }
+
   void showSearchDialog() {
     TextEditingController searchController = TextEditingController();
+
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Search'),
-          content: TextField(
-            controller: searchController,
-            decoration: InputDecoration(hintText: 'Enter search query'),
+      barrierDismissible: true,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
           ),
-          actions: [
-            TextButton(
-              child: Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // TITLE
+                const Text(
+                  "Search Services",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                ),
+
+                const SizedBox(height: 12),
+
+                // SEARCH FIELD
+                TextField(
+                  controller: searchController,
+                  autofocus: true,
+                  textInputAction: TextInputAction.search,
+                  onSubmitted: (value) {
+                    _performSearch(value);
+                  },
+                  decoration: InputDecoration(
+                    hintText: "e.g. Cleaning, Plumbing, Repair",
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: searchController.text.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              searchController.clear();
+                            },
+                          )
+                        : null,
+                    filled: true,
+                    fillColor: Colors.grey.shade100,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // ACTION BUTTONS
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text("Cancel"),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF1F3C88),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      onPressed: () {
+                        _performSearch(searchController.text);
+                      },
+                      child: const Text("Search"),
+                    ),
+                  ],
+                ),
+              ],
             ),
-            TextButton(
-              child: Text('Search'),
-              onPressed: () {
-                String search = searchController.text;
-                if (search.isEmpty) {
-                  loadServices('');
-                } else {
-                  loadServices(search);
-                }
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
+          ),
         );
       },
     );
   }
 
-  void showDetailsDialog(int index) {
-    String formattedDate = formatter.format(
-      DateTime.parse(listServices[index].serviceDate.toString()),
-    );
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(listServices[index].serviceTitle.toString()),
-          content: SizedBox(
-            width: screenWidth,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SizedBox(
-                    child: Image.network(
-                      '${MyConfig.baseUrl}/myfuwu/assets/services/service_${listServices[index].serviceId}.png',
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return const Icon(
-                          Icons.broken_image,
-                          size: 128,
-                          color: Colors.grey,
-                        );
-                      },
-                    ),
-                  ),
+  void _performSearch(String query) {
+    Navigator.pop(context);
 
-                  SizedBox(height: 10),
-                  Table(
-                    border: TableBorder.all(
-                      color: Colors.grey,
-                      width: 1.0,
-                      style: BorderStyle.solid,
+    if (query.trim().isEmpty) {
+      loadServices('');
+    } else {
+      loadServices(query.trim());
+    }
+  }
+
+  void showDetailsDialog(int index) {
+    final service = listServices[index];
+    final formattedDate = formatter.format(
+      DateTime.parse(service.serviceDate.toString()),
+    );
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.85,
+          minChildSize: 0.6,
+          maxChildSize: 0.95,
+          builder: (_, controller) {
+            return Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              child: SingleChildScrollView(
+                controller: controller,
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // DRAG HANDLE
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade400,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
                     ),
-                    columnWidths: {
-                      0: FixedColumnWidth(100.0),
-                      1: FlexColumnWidth(),
-                    },
-                    children: [
-                      TableRow(
-                        children: [
-                          TableCell(
-                            // Use TableCell to apply consistent styling/padding
-                            verticalAlignment:
-                                TableCellVerticalAlignment.middle,
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text('Title'),
+
+                    // IMAGE
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(14),
+                      child: AspectRatio(
+                        aspectRatio: 5 / 3,
+                        child: Image.network(
+                          '${MyConfig.baseUrl}/myfuwu/assets/services/service_${service.serviceId}.png',
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            color: Colors.grey.shade200,
+                            child: const Icon(
+                              Icons.broken_image,
+                              size: 80,
+                              color: Colors.grey,
                             ),
                           ),
-                          TableCell(
-                            verticalAlignment:
-                                TableCellVerticalAlignment.middle,
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                listServices[index].serviceTitle.toString(),
-                              ),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
-                      TableRow(
-                        children: [
-                          TableCell(
-                            verticalAlignment:
-                                TableCellVerticalAlignment.middle,
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text('Description'),
-                            ),
-                          ),
-                          TableCell(
-                            verticalAlignment:
-                                TableCellVerticalAlignment.middle,
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                listServices[index].serviceDesc.toString(),
-                              ),
-                            ),
-                          ),
-                        ],
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // TITLE
+                    Text(
+                      service.serviceTitle.toString(),
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
                       ),
-                      TableRow(
-                        children: [
-                          TableCell(
-                            verticalAlignment:
-                                TableCellVerticalAlignment.middle,
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text('Type'),
-                            ),
-                          ),
-                          TableCell(
-                            verticalAlignment:
-                                TableCellVerticalAlignment.middle,
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                listServices[index].serviceType.toString(),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      TableRow(
-                        children: [
-                          TableCell(
-                            verticalAlignment:
-                                TableCellVerticalAlignment.middle,
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text('District'),
-                            ),
-                          ),
-                          TableCell(
-                            verticalAlignment:
-                                TableCellVerticalAlignment.middle,
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                listServices[index].serviceDistrict.toString(),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      TableRow(
-                        children: [
-                          TableCell(
-                            verticalAlignment:
-                                TableCellVerticalAlignment.middle,
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text('Rate/Hour'),
-                            ),
-                          ),
-                          TableCell(
-                            verticalAlignment:
-                                TableCellVerticalAlignment.middle,
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                'RM ${listServices[index].serviceRate}',
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      TableRow(
-                        children: [
-                          TableCell(
-                            verticalAlignment:
-                                TableCellVerticalAlignment.middle,
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text('Date'),
-                            ),
-                          ),
-                          TableCell(
-                            verticalAlignment:
-                                TableCellVerticalAlignment.middle,
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(formattedDate),
-                            ),
-                          ),
-                        ],
-                      ),
-                      TableRow(
-                        children: [
-                          TableCell(
-                            verticalAlignment:
-                                TableCellVerticalAlignment.middle,
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text('Provider'),
-                            ),
-                          ),
-                          TableCell(
-                            verticalAlignment:
-                                TableCellVerticalAlignment.middle,
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                listServices[index].userName.toString(),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      TableRow(
-                        children: [
-                          TableCell(
-                            verticalAlignment:
-                                TableCellVerticalAlignment.middle,
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text('Phone'),
-                            ),
-                          ),
-                          TableCell(
-                            verticalAlignment:
-                                TableCellVerticalAlignment.middle,
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                listServices[index].userPhone.toString(),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 5),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      IconButton(
-                        onPressed: () async {
-                          await launchUrl(
-                            Uri.parse(
-                              'tel:${listServices[index].userPhone.toString()}',
-                            ),
+                    ),
+
+                    const SizedBox(height: 6),
+
+                    // DISTRICT + RATE
+                    Row(
+                      children: [
+                        _chip(
+                          Icons.location_on,
+                          service.serviceDistrict.toString(),
+                        ),
+                        const SizedBox(width: 8),
+                        _chip(
+                          Icons.attach_money,
+                          "RM ${service.serviceRate}/hr",
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 14),
+
+                    // DESCRIPTION
+                    Text(
+                      service.serviceDesc.toString(),
+                      style: const TextStyle(fontSize: 15),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    const Divider(),
+
+                    // INFO SECTION
+                    _infoRow("Service Type", service.serviceType),
+                    _infoRow("Posted On", formattedDate),
+                    _infoRow("Provider", service.userName),
+                    _infoRow("Phone", service.userPhone),
+                    _infoRow("Email", service.userEmail),
+
+                    const SizedBox(height: 20),
+
+                    // CONTACT ACTIONS
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _actionIcon(
+                          Icons.call,
+                          () => launchUrl(
+                            Uri.parse('tel:${service.userPhone}'),
                             mode: LaunchMode.externalApplication,
-                          );
-                        },
-                        icon: Icon(Icons.call),
-                      ),
-                      IconButton(
-                        onPressed: () async {
-                          await launchUrl(
-                            Uri.parse(
-                              'sms:${listServices[index].userPhone.toString()}',
-                            ),
+                          ),
+                        ),
+                        _actionIcon(
+                          Icons.message,
+                          () => launchUrl(
+                            Uri.parse('sms:${service.userPhone}'),
                             mode: LaunchMode.externalApplication,
-                          );
-                        },
-                        icon: Icon(Icons.message),
-                      ),
-                      IconButton(
-                        onPressed: () async {
-                          await launchUrl(
-                            Uri.parse(
-                              'mailto:${listServices[index].userEmail.toString()}',
-                            ),
+                          ),
+                        ),
+                        _actionIcon(
+                          Icons.email,
+                          () => launchUrl(
+                            Uri.parse('mailto:${service.userEmail}'),
                             mode: LaunchMode.externalApplication,
-                          );
-                        },
-                        icon: Icon(Icons.email),
-                      ),
-                      IconButton(
-                        onPressed: () async {
-                          await launchUrl(
-                            Uri.parse(
-                              'https://wa.me/${listServices[index].userPhone.toString()}',
-                            ),
+                          ),
+                        ),
+                        _actionIcon(
+                          Icons.wechat,
+                          () => launchUrl(
+                            Uri.parse('https://wa.me/${service.userPhone}'),
                             mode: LaunchMode.externalApplication,
-                          );
-                        },
-                        icon: Icon(Icons.wechat),
-                      ),
-                    ],
-                  ),
-                ],
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 20),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _chip(IconData icon, String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.blueGrey.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: Colors.blueGrey),
+          const SizedBox(width: 4),
+          Text(text, style: const TextStyle(fontSize: 13)),
+        ],
+      ),
+    );
+  }
+
+  Widget _infoRow(String label, String? value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 110,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade700,
               ),
             ),
           ),
-          actions: [
-            TextButton(
-              child: Text('Close'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
+          Expanded(child: Text(value ?? "-")),
+        ],
+      ),
+    );
+  }
+
+  Widget _actionIcon(IconData icon, VoidCallback onTap) {
+    return InkResponse(
+      onTap: onTap,
+      radius: 28,
+      child: CircleAvatar(
+        radius: 22,
+        backgroundColor: Colors.blueGrey.withOpacity(0.15),
+        child: Icon(icon, color: Colors.blueGrey),
+      ),
     );
   }
 

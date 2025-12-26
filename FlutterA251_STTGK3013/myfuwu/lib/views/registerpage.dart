@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
@@ -31,154 +30,220 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    height = MediaQuery.of(context).size.height;
-    width = MediaQuery.of(context).size.width;
-    print(width);
-    if (width > 400) {
-      width = 400;
-    } else {
-      width = width;
-    }
+    final media = MediaQuery.of(context);
+    final screenWidth = media.size.width;
+    final maxWidth = screenWidth > 460 ? 460.0 : screenWidth;
+
     return Scaffold(
-      appBar: AppBar(title: Text('Register Page'), actions: [
-        
-        ],
+      backgroundColor: Colors.grey.shade100,
+      appBar: AppBar(
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        foregroundColor: const Color(0xFF1F3C88),
+        title: const Text(
+          "Create Account",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
       ),
       body: Center(
         child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
-            child: SizedBox(
-              width: width,
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Image.asset('assets/images/myfuwu.png', scale: 4.5),
-                  ),
-                  SizedBox(height: 5),
-                  TextField(
-                    controller: emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: InputDecoration(
-                      labelText: 'Email',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  SizedBox(height: 5),
-                  TextField(
-                    controller: nameController,
-                    decoration: InputDecoration(
-                      labelText: 'Name',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  SizedBox(height: 5),
-                  TextField(
-                    controller: phoneController,
-                    keyboardType: TextInputType.phone,
-                    decoration: InputDecoration(
-                      labelText: 'Phone',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  SizedBox(height: 5),
-                  //address from reverse geocoding
-                  TextField(
-                    maxLines: 3,
-                    controller: addressController,
-                    decoration: InputDecoration(
-                      labelText: 'Address',
-                      border: OutlineInputBorder(),
-                      suffixIcon: IconButton(
-                        onPressed: () async {
-                          mypostion = await _determinePosition();
-                          print(mypostion.latitude);
-                          print(mypostion.longitude);
-                          List<Placemark> placemarks =
-                              await placemarkFromCoordinates(
-                                mypostion.latitude,
-                                mypostion.longitude,
-                              );
-                          Placemark place = placemarks[0];
-                          addressController.text =
-                              "${place.name},\n${place.street},\n${place.postalCode},${place.locality},\n${place.administrativeArea},${place.country}";
-                          setState(() {});
-                        },
-                        icon: Icon(Icons.location_on),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: maxWidth),
+            child: Card(
+              elevation: 6,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Text(
+                      "Join MyFuwu 👋",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ),
-                  SizedBox(height: 5),
-                  TextField(
-                    controller: passwordController,
-                    obscureText: visible,
-                    decoration: InputDecoration(
-                      labelText: 'Password',
-                      suffixIcon: IconButton(
-                        onPressed: () {
-                          if (visible) {
-                            visible = false;
-                          } else {
-                            visible = true;
-                          }
-                          setState(() {});
-                        },
-                        icon: Icon(Icons.visibility),
-                      ),
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  SizedBox(height: 5),
-                  TextField(
-                    controller: confirmPasswordController,
-                    obscureText: visible,
-                    decoration: InputDecoration(
-                      labelText: 'Confirm Password',
-                      border: OutlineInputBorder(),
-                      suffixIcon: IconButton(
-                        onPressed: () {
-                          if (visible) {
-                            visible = false;
-                          } else {
-                            visible = true;
-                          }
-                          setState(() {});
-                        },
-                        icon: Icon(Icons.visibility),
+                    const SizedBox(height: 6),
+                    Text(
+                      "Register to offer or find local services",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade600,
                       ),
                     ),
-                  ),
-                  SizedBox(height: 20),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        print('Register button pressed');
-                        registerDialog();
-                      },
-                      child: Text('Register'),
+
+                    const SizedBox(height: 28),
+
+                    // EMAIL
+                    _inputField(
+                      controller: emailController,
+                      label: "Email",
+                      icon: Icons.email_outlined,
+                      keyboard: TextInputType.emailAddress,
                     ),
-                  ),
-                  SizedBox(height: 10),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const LoginPage(),
+
+                    const SizedBox(height: 14),
+
+                    // NAME
+                    _inputField(
+                      controller: nameController,
+                      label: "Full Name",
+                      icon: Icons.person_outline,
+                    ),
+
+                    const SizedBox(height: 14),
+
+                    // PHONE
+                    _inputField(
+                      controller: phoneController,
+                      label: "Phone Number",
+                      icon: Icons.phone_outlined,
+                      keyboard: TextInputType.phone,
+                    ),
+
+                    const SizedBox(height: 14),
+
+                    // ADDRESS
+                    TextField(
+                      controller: addressController,
+                      maxLines: 3,
+                      decoration: InputDecoration(
+                        labelText: "Address",
+                        prefixIcon: const Icon(Icons.location_on_outlined),
+                        suffixIcon: IconButton(
+                          tooltip: "Use current location",
+                          icon: const Icon(Icons.my_location),
+                          onPressed: () async {
+                            mypostion = await _determinePosition();
+                            final placemarks = await placemarkFromCoordinates(
+                              mypostion.latitude,
+                              mypostion.longitude,
+                            );
+                            final place = placemarks.first;
+                            addressController.text =
+                                "${place.name}, ${place.street},\n"
+                                "${place.postalCode} ${place.locality}, "
+                                "${place.administrativeArea}, ${place.country}";
+                            setState(() {});
+                          },
                         ),
-                      );
-                    },
-                    child: Text('Already have an account? Login here'),
-                  ),
-                  SizedBox(height: 5),
-                ],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 14),
+
+                    // PASSWORD
+                    _passwordField(
+                      controller: passwordController,
+                      label: "Password",
+                    ),
+
+                    const SizedBox(height: 14),
+
+                    // CONFIRM PASSWORD
+                    _passwordField(
+                      controller: confirmPasswordController,
+                      label: "Confirm Password",
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // REGISTER BUTTON
+                    SizedBox(
+                      height: 48,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF1F3C88),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: registerDialog,
+                        child: const Text(
+                          "Register",
+                          style: TextStyle(fontSize: 16, color: Colors.white),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // LOGIN LINK
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text("Already have an account? "),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const LoginPage(),
+                              ),
+                            );
+                          },
+                          child: const Text(
+                            "Login",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1F3C88),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _inputField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    TextInputType keyboard = TextInputType.text,
+  }) {
+    return TextField(
+      controller: controller,
+      keyboardType: keyboard,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
+  Widget _passwordField({
+    required TextEditingController controller,
+    required String label,
+  }) {
+    return TextField(
+      controller: controller,
+      obscureText: visible,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: const Icon(Icons.lock_outline),
+        suffixIcon: IconButton(
+          icon: Icon(visible ? Icons.visibility_off : Icons.visibility),
+          onPressed: () => setState(() => visible = !visible),
+        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
