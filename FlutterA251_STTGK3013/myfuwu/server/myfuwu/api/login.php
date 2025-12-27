@@ -11,7 +11,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $password = $_POST['password'];
     $hashedpassword = sha1($password);
     include 'dbconnect.php';
-    $sqllogin = "SELECT * FROM `tbl_users` WHERE `user_email` = '$email' AND `user_password` = '$hashedpassword'";
+    $verifyotp = "1";
+    $sqllogin = "SELECT * FROM `tbl_users` WHERE `user_email` = '$email' AND `user_password` = '$hashedpassword' AND `user_otp` = '$verifyotp'";
     $result = $conn->query($sqllogin);
     if ($result->num_rows > 0) {
         $userdata = array();

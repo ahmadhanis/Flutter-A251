@@ -89,6 +89,8 @@ class _SplashPageState extends State<SplashPage> {
                     userPassword: 'guest',
                     userOtp: '0000',
                     userRegdate: '0000-00-00',
+                    userCredit: 0,
+                    userAddress: 'NA',
                   );
                   Navigator.pushReplacement(
                     context,
@@ -108,6 +110,8 @@ class _SplashPageState extends State<SplashPage> {
             userPassword: 'guest',
             userOtp: '0000',
             userRegdate: '0000-00-00',
+            userCredit: 0,
+            userAddress: 'NA',
           );
           Navigator.pushReplacement(
             context,
