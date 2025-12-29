@@ -125,7 +125,7 @@ class _MyServicePageState extends State<NewServicePage> {
                         const SizedBox(height: 12),
 
                         DropdownButtonFormField<String>(
-                          value: selectedservice,
+                          initialValue: selectedservice,
                           decoration: _dropdownDecoration(
                             "Service Category",
                             Icons.design_services_outlined,
@@ -143,7 +143,7 @@ class _MyServicePageState extends State<NewServicePage> {
                         const SizedBox(height: 12),
 
                         DropdownButtonFormField<String>(
-                          value: selecteddistrict,
+                          initialValue: selecteddistrict,
                           decoration: _dropdownDecoration(
                             "Service Location",
                             Icons.location_on_outlined,
@@ -505,7 +505,6 @@ class _MyServicePageState extends State<NewServicePage> {
           },
         )
         .then((response) {
-          print(response.body);
           if (response.statusCode == 200) {
             var jsonResponse = response.body;
             var resarray = jsonDecode(jsonResponse);

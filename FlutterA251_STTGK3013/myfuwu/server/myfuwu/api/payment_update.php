@@ -32,7 +32,7 @@ foreach ($data as $key => $value) {
     }
 }
  
-$signed= hash_hmac('sha256', $signing, 'S-wzNn8FTL0endIB4wgi728w');
+$signed= hash_hmac('sha256', $signing, 'xkey');
 if ($signed === $data['x_signature']) {
     if ($paidstatus == "Success"){ //payment success
     

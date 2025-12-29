@@ -298,7 +298,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              print('Before registering user with email: $email');
               registerUser(email, password, name, phone);
             },
             child: Text('Register'),
